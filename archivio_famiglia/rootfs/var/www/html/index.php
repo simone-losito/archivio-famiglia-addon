@@ -2,6 +2,11 @@
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/functions.php';
+$checkInstall = $conn->query("SHOW TABLES LIKE 'utenti'");
+if (!$checkInstall || $checkInstall->num_rows === 0) {
+    header("Location: install.php");
+    exit;
+}
 
 requireLogin();
 
