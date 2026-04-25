@@ -5,6 +5,19 @@ Archivio documentale familiare completo, integrato in Home Assistant.
 Gestisci documenti, categorie, utenti e link temporanei direttamente da browser, con un'interfaccia semplice, veloce e moderna.
 
 ---
+## ☕ Supporta il progetto
+
+Se questo progetto ti è utile e vuoi supportarlo:
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
+    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
+  </a>
+</p>
+
+<p align="center">
+Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+</p>
 
 ## ✨ Funzionalità principali
 
@@ -137,6 +150,19 @@ Se ti piace questo progetto:
 👉 proponilo ad aziende
 
 ---
+## ☕ Supporta il progetto
+
+Se questo progetto ti è utile e vuoi supportarlo:
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
+    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
+  </a>
+</p>
+
+<p align="center">
+Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+</p>
 
 ## 📜 Licenza
 
