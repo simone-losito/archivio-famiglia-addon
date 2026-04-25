@@ -8,6 +8,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY rootfs/ /
+COPY run.sh /run.sh
 
 RUN chmod a+x /run.sh \
     && chown -R www-data:www-data /var/www/html || true
