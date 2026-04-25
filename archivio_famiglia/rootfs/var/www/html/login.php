@@ -9,13 +9,21 @@ function tableExists(mysqli $conn, string $table): bool {
     return $stmt->get_result()->num_rows > 0;
 }
 
+// Controllo installazione robusto
+$installNeeded = false;
+
 if (!tableExists($conn, 'utenti')) {
-    header("Location: install.php");
-    exit;
+    $installNeeded = true;
+} else {
+    $res = $conn->query("SELECT COUNT(*) AS totale FROM utenti");
+    $count = $res ? (int)($res->fetch_assoc()['totale'] ?? 0) : 0;
+
+    if ($count === 0) {
+        $installNeeded = true;
+    }
 }
 
-$count = $conn->query("SELECT COUNT(*) AS totale FROM utenti")->fetch_assoc()['totale'] ?? 0;
-if ((int)$count === 0) {
+if ($installNeeded) {
     header("Location: install.php");
     exit;
 }
