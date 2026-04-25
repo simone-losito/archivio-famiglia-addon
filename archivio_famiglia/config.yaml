@@ -11,13 +11,13 @@ arch:
 startup: services
 boot: auto
 init: false
-webui: "http://[HOST]:[PORT:8090]"
+webui: "http://[HOST]:[PORT:80]"
 panel_icon: "mdi:folder"
 panel_title: "Archivio"
 ports:
-  8090/tcp: 8090
+  80/tcp: 8091
 ports_description:
-  8090/tcp: "Interfaccia web Archivio Famiglia"
+  80/tcp: "Interfaccia web Archivio Famiglia"
 map:
   - type: share
     read_only: false
