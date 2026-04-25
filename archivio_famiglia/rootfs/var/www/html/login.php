@@ -2,11 +2,14 @@
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 
+function h($v): string {
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
+
 function tableExists(mysqli $conn, string $table): bool {
-    $stmt = $conn->prepare("SHOW TABLES LIKE ?");
-    $stmt->bind_param("s", $table);
-    $stmt->execute();
-    return $stmt->get_result()->num_rows > 0;
+    $table = $conn->real_escape_string($table);
+    $res = $conn->query("SHOW TABLES LIKE '{$table}'");
+    return $res && $res->num_rows > 0;
 }
 
 // Controllo installazione robusto
@@ -51,10 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Credenziali errate";
     }
 }
-
-function h($v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -63,17 +62,8 @@ function h($v): string {
 <title>Login Archivio</title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
-.login-wrap{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-}
-.login-card{
-    width:100%;
-    max-width:460px;
-}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-card{width:100%;max-width:460px;}
 </style>
 </head>
 <body>
