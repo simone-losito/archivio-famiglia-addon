@@ -1,0 +1,6 @@
+git init
+git add .
+git commit -m "Prima versione Archivio Famiglia add-on"
+git branch -M main
+git remote add origin https://github.com/TUO-USERNAME/archivio-famiglia-addon.git
+git push -u origin main
