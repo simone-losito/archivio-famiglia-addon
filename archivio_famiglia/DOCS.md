@@ -4,6 +4,19 @@ Benvenuto 👋
 Questo add-on ti permette di gestire un archivio documentale familiare direttamente dentro Home Assistant.
 
 ---
+## ☕ Supporta il progetto
+
+Se questo progetto ti è utile e vuoi supportarlo:
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
+    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
+  </a>
+</p>
+
+<p align="center">
+Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+</p>
 
 ## 🚀 Primo utilizzo
 
@@ -152,6 +165,19 @@ Se ti è utile:
 👉 condividilo  
 
 ---
+## ☕ Supporta il progetto
+
+Se questo progetto ti è utile e vuoi supportarlo:
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
+    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
+  </a>
+</p>
+
+<p align="center">
+Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+</p>
 
 ## 👨‍💻 Autore
 
