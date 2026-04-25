@@ -186,6 +186,13 @@ SimoncinoProjects
   </a>
 </p>
 
+## ⭐ Se ti piace il progetto
+
+Lascia una ⭐ su GitHub
+Condividilo
+Supporta lo sviluppo 🚀
+
+
 ---
 
 ## 📜 Licenza
