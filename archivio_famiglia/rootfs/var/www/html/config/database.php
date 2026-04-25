@@ -1,21 +1,24 @@
 <?php
 // config/database.php
 
-$optionsFile = '/data/options.json';
+$optionsFile = __DIR__ . '/addon_options.json';
 
 $dbHost = 'core-mariadb';
 $dbName = 'homeassistant';
 $dbUser = 'homeassistant';
 $dbPass = '';
 
-if (is_file($optionsFile)) {
+if (is_file($optionsFile) && is_readable($optionsFile)) {
     $options = json_decode(file_get_contents($optionsFile), true);
 
     if (is_array($options)) {
         $dbHost = $options['db_host'] ?? $dbHost;
         $dbName = $options['db_name'] ?? $dbName;
         $dbUser = $options['db_user'] ?? $dbUser;
-        $dbPass = $options['db_pass'] ?? $dbPass;
+
+        if (isset($options['db_pass']) && is_string($options['db_pass'])) {
+            $dbPass = $options['db_pass'];
+        }
     }
 }
 
