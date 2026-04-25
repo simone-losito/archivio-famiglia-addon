@@ -13,12 +13,6 @@ function tableExists(mysqli $conn, string $table): bool {
     return $stmt->get_result()->num_rows > 0;
 }
 
-function slugifyInstaller(string $text): string {
-    $text = strtolower(trim($text));
-    $text = preg_replace('/[^a-z0-9]+/i', '_', $text);
-    return trim($text, '_') ?: 'categoria';
-}
-
 function createDemoPdf(string $path): void {
     $pdf = "%PDF-1.4
 1 0 obj
@@ -41,9 +35,7 @@ BT
 0 -45 Td
 (Documento dimostrativo creato automaticamente.) Tj
 0 -30 Td
-(Questo PDF serve per provare anteprima, download,) Tj
-0 -24 Td
-(preferiti, categorie e condivisione temporanea.) Tj
+(Questo PDF serve per testare tutte le funzioni.) Tj
 0 -45 Td
 (Buon utilizzo!) Tj
 ET
@@ -68,78 +60,93 @@ startxref
     file_put_contents($path, $pdf);
 }
 
-$alreadyInstalled = tableExists($conn, 'utenti');
-if ($alreadyInstalled) {
-    $count = $conn->query("SELECT COUNT(*) AS totale FROM utenti")->fetch_assoc()['totale'] ?? 0;
-    if ((int)$count > 0) {
-        header("Location: login.php");
-        exit;
+//
+// 🔒 CONTROLLO INSTALLAZIONE ROBUSTO
+//
+$installNeeded = false;
+
+if (!tableExists($conn, 'utenti')) {
+    $installNeeded = true;
+} else {
+    $res = $conn->query("SELECT COUNT(*) AS totale FROM utenti");
+    $count = $res ? (int)($res->fetch_assoc()['totale'] ?? 0) : 0;
+
+    if ($count === 0) {
+        $installNeeded = true;
     }
+}
+
+if (!$installNeeded) {
+    header("Location: login.php");
+    exit;
 }
 
 $error = '';
 
+//
+// 🚀 INSTALLAZIONE
+//
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $password2 = $_POST['password2'] ?? '';
 
     if ($username === '') {
-        $error = 'Inserisci il nome utente amministratore.';
+        $error = 'Inserisci username';
     } elseif (strlen($password) < 4) {
-        $error = 'La password deve contenere almeno 4 caratteri.';
+        $error = 'Password troppo corta';
     } elseif ($password !== $password2) {
-        $error = 'Le password non coincidono.';
+        $error = 'Le password non coincidono';
     } else {
 
+        // Tabelle
         $conn->query("
             CREATE TABLE IF NOT EXISTS utenti (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(80) NOT NULL UNIQUE,
-                password_hash VARCHAR(255) NOT NULL,
-                ruolo VARCHAR(30) NOT NULL DEFAULT 'user',
-                attivo TINYINT(1) NOT NULL DEFAULT 1,
-                foto VARCHAR(255) NULL,
+                username VARCHAR(80) UNIQUE,
+                password_hash VARCHAR(255),
+                ruolo VARCHAR(30) DEFAULT 'user',
+                attivo TINYINT(1) DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ) ENGINE=InnoDB CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS categorie (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                slug VARCHAR(100) NOT NULL UNIQUE,
-                nome VARCHAR(150) NOT NULL,
-                immagine VARCHAR(255) NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                slug VARCHAR(100) UNIQUE,
+                nome VARCHAR(150)
+            ) ENGINE=InnoDB CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS documenti (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                nome_archivio VARCHAR(255) NOT NULL,
-                nome_originale VARCHAR(255) NOT NULL,
-                titolo VARCHAR(255) NULL,
+                nome_archivio VARCHAR(255),
+                nome_originale VARCHAR(255),
+                titolo VARCHAR(255),
                 categoria VARCHAR(100),
-                note TEXT NULL,
-                tags VARCHAR(255) NULL,
-                data_documento DATE NULL,
-                preferito TINYINT(1) NOT NULL DEFAULT 0,
+                note TEXT,
+                tags VARCHAR(255),
+                data_documento DATE,
+                preferito TINYINT(1) DEFAULT 0,
                 data_upload DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ) ENGINE=InnoDB CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS share_links (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(80) NOT NULL UNIQUE,
-                categoria VARCHAR(100) NOT NULL,
-                nome_archivio VARCHAR(255) NOT NULL,
-                expires_at DATETIME NOT NULL,
+                token VARCHAR(80) UNIQUE,
+                categoria VARCHAR(100),
+                nome_archivio VARCHAR(255),
+                expires_at DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ) ENGINE=InnoDB CHARSET=utf8mb4;
         ");
 
+        // Categorie demo
         $defaults = [
             'cartelle_cliniche' => 'Cartelle cliniche',
             'referti' => 'Referti',
@@ -159,36 +166,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Admin
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO utenti (username, password_hash, ruolo, attivo) VALUES (?, ?, 'admin', 1)");
+        $stmt = $conn->prepare("INSERT INTO utenti (username, password_hash, ruolo) VALUES (?, ?, 'admin')");
         $stmt->bind_param("ss", $username, $hash);
         $stmt->execute();
 
+        // PDF demo
         $demoDir = UPLOAD_DIR . '/referti';
-        if (!is_dir($demoDir)) {
-            mkdir($demoDir, 0775, true);
-        }
+        if (!is_dir($demoDir)) mkdir($demoDir, 0775, true);
 
         $demoFile = 'DOC-0001.pdf';
         $demoPath = $demoDir . '/' . $demoFile;
 
-        if (!is_file($demoPath)) {
+        if (!file_exists($demoPath)) {
             createDemoPdf($demoPath);
         }
-
-        $titolo = 'Documento dimostrativo';
-        $originale = 'documento_dimostrativo.pdf';
-        $categoria = 'referti';
-        $note = 'Documento creato automaticamente dal wizard iniziale.';
-        $tags = 'demo, esempio, primo avvio';
-        $dataDocumento = date('Y-m-d');
 
         $stmt = $conn->prepare("
             INSERT INTO documenti
             (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento, preferito)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+            VALUES (?, ?, 'Documento dimostrativo', 'referti', 'Creato automaticamente', 'demo', ?, 1)
         ");
-        $stmt->bind_param("sssssss", $demoFile, $originale, $titolo, $categoria, $note, $tags, $dataDocumento);
+        $today = date('Y-m-d');
+        $stmt->bind_param("sss", $demoFile, $demoFile, $today);
         $stmt->execute();
 
         header("Location: login.php?installed=1");
@@ -196,68 +197,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Installazione Archivio Famiglia</title>
+<title>Installazione</title>
 <link rel="stylesheet" href="assets/css/archivio.css">
-<style>
-.install-wrap{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-}
-.install-card{
-    width:100%;
-    max-width:720px;
-}
-.install-steps{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:12px;
-    margin:20px 0;
-}
-.install-step{
-    background:rgba(2,6,23,.35);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:14px;
-}
-</style>
 </head>
 <body>
 
-<div class="install-wrap">
-    <div class="card install-card">
-        <span class="badge">Primo avvio</span>
-        <h1>📁 Archivio Famiglia</h1>
-        <p>Benvenuto. Questa procedura crea automaticamente database, categorie demo, documento demo e primo utente amministratore.</p>
-
-        <div class="install-steps">
-            <div class="install-step">✅ Tabelle database</div>
-            <div class="install-step">✅ Categorie iniziali</div>
-            <div class="install-step">✅ PDF dimostrativo</div>
-            <div class="install-step">✅ Account admin</div>
-        </div>
+<div class="login-wrap">
+    <div class="card login-card">
+        <h1>🚀 Primo avvio</h1>
 
         <?php if($error): ?>
             <p class="error"><?= h($error) ?></p>
         <?php endif; ?>
 
         <form method="POST">
-            <label>Nome utente amministratore</label>
-            <input type="text" name="username" placeholder="Esempio: admin" required>
-
-            <label>Password amministratore</label>
+            <input name="username" placeholder="Username admin" required>
             <input type="password" name="password" placeholder="Password" required>
-
-            <label>Conferma password</label>
-            <input type="password" name="password2" placeholder="Ripeti password" required>
-
-            <button>🚀 Crea archivio</button>
+            <input type="password" name="password2" placeholder="Conferma password" required>
+            <button>Crea archivio</button>
         </form>
     </div>
 </div>
