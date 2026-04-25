@@ -26,8 +26,30 @@ Gestisci documenti, categorie, utenti e link temporanei direttamente da browser,
   </a>
 </p>
 
+---
+
+## 🖼️ Anteprima
+
+### 🌙 Tema Dark
+
 <p align="center">
-Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+  <img src="assets/screens/dashboard-dark.png" width="900">
+</p>
+
+---
+
+### ☀️ Tema Light
+
+<p align="center">
+  <img src="assets/screens/dashboard-light.png" width="900">
+</p>
+
+---
+
+### 📂 Gestione categorie
+
+<p align="center">
+  <img src="assets/screens/categorie.png" width="900">
 </p>
 
 ---
@@ -65,18 +87,14 @@ https://github.com/simone-losito/archivio-famiglia-addon
 
 ## ⚙️ Configurazione
 
-Dopo l’installazione, configura:
-
 * **db_host** → `core-mariadb`
-* **db_name** → `homeassistant` (o altro DB)
+* **db_name** → `homeassistant`
 * **db_user** → `homeassistant`
 * **db_pass** → password MariaDB
 
 ---
 
 ## 🧠 Primo avvio (Wizard automatico)
-
-Al primo avvio:
 
 ✔ crea automaticamente:
 
@@ -85,7 +103,7 @@ Al primo avvio:
 * Documento PDF demo
 * Primo utente amministratore
 
-👉 Ti verrà chiesto solo:
+👉 Inserisci solo:
 
 * username
 * password
@@ -94,39 +112,35 @@ Al primo avvio:
 
 ## 📂 Storage
 
-I file vengono salvati in:
-
 ```
 /share/archivio
 ```
 
-Questo significa:
-
-* accessibili da Samba
-* persistenti anche dopo aggiornamenti
-* non vengono cancellati disinstallando l’add-on
+✔ accessibile da rete
+✔ persistente
+✔ NON viene cancellato
 
 ---
 
 ## 🔐 Sicurezza
 
 * Password hashate (bcrypt)
-* Accesso controllato utenti attivi
+* Controllo utenti attivi
 * Link temporanei con scadenza
 
 ---
 
 ## ⚠️ Note importanti
 
-* Se reinstalli l'add-on:
+* Reinstallando:
 
-  * ❌ NON perdi i dati se non cancelli `/share`
-  * ❌ NON perdi DB se non lo resetti
+  * ❌ NON perdi file
+  * ❌ NON perdi database (se non lo resetti)
 
-* Il wizard si avvia solo se:
+* Il wizard parte solo se:
 
   * database vuoto
-  * nessun utente presente
+  * nessun utente
 
 ---
 
@@ -143,7 +157,6 @@ Questo significa:
 * Apache
 * MariaDB
 * Docker (Home Assistant Add-on)
-* Vanilla JS + CSS custom
 
 ---
 
@@ -166,12 +179,6 @@ SimoncinoProjects
 ---
 
 ## ☕ Supporta il progetto
-
-Se ti piace questo progetto:
-
-👉 offri un caffè
-👉 condividilo
-👉 proponilo ad aziende
 
 <p align="center">
   <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
