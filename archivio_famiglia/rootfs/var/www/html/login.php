@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/core/telemetry.php';
+archivio_send_telemetry_once('login_page_open');
 
 function h($v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
