@@ -7,10 +7,9 @@ function h($v): string {
 }
 
 function tableExists(mysqli $conn, string $table): bool {
-    $stmt = $conn->prepare("SHOW TABLES LIKE ?");
-    $stmt->bind_param("s", $table);
-    $stmt->execute();
-    return $stmt->get_result()->num_rows > 0;
+    $table = $conn->real_escape_string($table);
+    $res = $conn->query("SHOW TABLES LIKE '{$table}'");
+    return $res && $res->num_rows > 0;
 }
 
 function createDemoPdf(string $path): void {
@@ -57,12 +56,11 @@ trailer
 startxref
 585
 %%EOF";
+
     file_put_contents($path, $pdf);
 }
 
-//
-// 🔒 CONTROLLO INSTALLAZIONE ROBUSTO
-//
+// Controllo installazione robusto
 $installNeeded = false;
 
 if (!tableExists($conn, 'utenti')) {
@@ -83,13 +81,9 @@ if (!$installNeeded) {
 
 $error = '';
 
-//
-// 🚀 INSTALLAZIONE
-//
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $username  = trim($_POST['username'] ?? '');
+    $password  = $_POST['password'] ?? '';
     $password2 = $_POST['password2'] ?? '';
 
     if ($username === '') {
@@ -100,53 +94,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Le password non coincidono';
     } else {
 
-        // Tabelle
         $conn->query("
             CREATE TABLE IF NOT EXISTS utenti (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(80) UNIQUE,
-                password_hash VARCHAR(255),
-                ruolo VARCHAR(30) DEFAULT 'user',
-                attivo TINYINT(1) DEFAULT 1,
+                username VARCHAR(80) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                ruolo VARCHAR(30) NOT NULL DEFAULT 'user',
+                attivo TINYINT(1) NOT NULL DEFAULT 1,
+                foto VARCHAR(255) NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB CHARSET=utf8mb4;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS categorie (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                slug VARCHAR(100) UNIQUE,
-                nome VARCHAR(150)
-            ) ENGINE=InnoDB CHARSET=utf8mb4;
+                slug VARCHAR(100) NOT NULL UNIQUE,
+                nome VARCHAR(150) NOT NULL,
+                immagine VARCHAR(255) NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS documenti (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                nome_archivio VARCHAR(255),
-                nome_originale VARCHAR(255),
-                titolo VARCHAR(255),
-                categoria VARCHAR(100),
-                note TEXT,
-                tags VARCHAR(255),
-                data_documento DATE,
-                preferito TINYINT(1) DEFAULT 0,
+                nome_archivio VARCHAR(255) NOT NULL,
+                nome_originale VARCHAR(255) NOT NULL,
+                titolo VARCHAR(255) NULL,
+                categoria VARCHAR(100) NULL,
+                note TEXT NULL,
+                tags VARCHAR(255) NULL,
+                data_documento DATE NULL,
+                preferito TINYINT(1) NOT NULL DEFAULT 0,
                 data_upload DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB CHARSET=utf8mb4;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
         $conn->query("
             CREATE TABLE IF NOT EXISTS share_links (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(80) UNIQUE,
-                categoria VARCHAR(100),
-                nome_archivio VARCHAR(255),
-                expires_at DATETIME,
+                token VARCHAR(80) NOT NULL UNIQUE,
+                categoria VARCHAR(100) NOT NULL,
+                nome_archivio VARCHAR(255) NOT NULL,
+                expires_at DATETIME NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB CHARSET=utf8mb4;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
-        // Categorie demo
         $defaults = [
             'cartelle_cliniche' => 'Cartelle cliniche',
             'referti' => 'Referti',
@@ -166,30 +161,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Admin
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO utenti (username, password_hash, ruolo) VALUES (?, ?, 'admin')");
+        $stmt = $conn->prepare("INSERT INTO utenti (username, password_hash, ruolo, attivo) VALUES (?, ?, 'admin', 1)");
         $stmt->bind_param("ss", $username, $hash);
         $stmt->execute();
 
-        // PDF demo
         $demoDir = UPLOAD_DIR . '/referti';
-        if (!is_dir($demoDir)) mkdir($demoDir, 0775, true);
+        if (!is_dir($demoDir)) {
+            mkdir($demoDir, 0775, true);
+        }
 
         $demoFile = 'DOC-0001.pdf';
         $demoPath = $demoDir . '/' . $demoFile;
 
-        if (!file_exists($demoPath)) {
+        if (!is_file($demoPath)) {
             createDemoPdf($demoPath);
         }
+
+        $titolo = 'Documento dimostrativo';
+        $originale = 'documento_dimostrativo.pdf';
+        $categoria = 'referti';
+        $note = 'Creato automaticamente dal wizard iniziale.';
+        $tags = 'demo, esempio, primo avvio';
+        $today = date('Y-m-d');
 
         $stmt = $conn->prepare("
             INSERT INTO documenti
             (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento, preferito)
-            VALUES (?, ?, 'Documento dimostrativo', 'referti', 'Creato automaticamente', 'demo', ?, 1)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         ");
-        $today = date('Y-m-d');
-        $stmt->bind_param("sss", $demoFile, $demoFile, $today);
+        $stmt->bind_param("sssssss", $demoFile, $originale, $titolo, $categoria, $note, $tags, $today);
         $stmt->execute();
 
         header("Location: login.php?installed=1");
@@ -197,28 +198,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Installazione</title>
+<title>Installazione Archivio Famiglia</title>
 <link rel="stylesheet" href="assets/css/archivio.css">
+<style>
+.login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+.login-card{
+    width:100%;
+    max-width:520px;
+}
+</style>
 </head>
 <body>
 
 <div class="login-wrap">
     <div class="card login-card">
-        <h1>🚀 Primo avvio</h1>
+        <span class="badge">Primo avvio</span>
+        <h1>🚀 Archivio Famiglia</h1>
+        <p>Crea il primo amministratore. Tabelle, categorie demo e PDF dimostrativo verranno creati automaticamente.</p>
 
         <?php if($error): ?>
             <p class="error"><?= h($error) ?></p>
         <?php endif; ?>
 
         <form method="POST">
+            <label>Username admin</label>
             <input name="username" placeholder="Username admin" required>
+
+            <label>Password</label>
             <input type="password" name="password" placeholder="Password" required>
+
+            <label>Conferma password</label>
             <input type="password" name="password2" placeholder="Conferma password" required>
+
             <button>Crea archivio</button>
         </form>
     </div>
