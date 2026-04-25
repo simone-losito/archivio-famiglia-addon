@@ -1,218 +1,143 @@
-\# 📁 Archivio Famiglia
+# 📁 Archivio Famiglia (Home Assistant Add-on)
 
+Archivio documentale familiare completo, integrato in Home Assistant.
 
+Gestisci documenti, categorie, utenti e link temporanei direttamente da browser, con un'interfaccia semplice, veloce e moderna.
 
-Gestione documenti personale e familiare, integrata in Home Assistant.
+---
 
+## ✨ Funzionalità principali
 
+- 📂 Gestione categorie (Cartelle cliniche, Referti, Casa, Auto, ecc.)
+- 📄 Upload documenti con anteprima
+- ⭐ Sistema preferiti
+- 👥 Multi utente con ruoli
+- 🔗 Link temporanei condivisibili
+- 🧾 Tag e note documenti
+- 🗂️ Archivio organizzato per categoria
+- 💾 Backup locale
+- 🎨 UI dark moderna
+- ⚡ Integrato in Home Assistant
 
-Un archivio progettato per essere \*\*semplice, veloce e realmente utilizzabile ogni giorno\*\*, senza cloud esterni e senza complicazioni inutili.
+---
 
+## 🚀 Installazione
 
+### Metodo 1 – Repository personalizzato
 
-\---
+1. Vai in **Home Assistant → Add-on Store**
+2. Clicca sui 3 puntini → **Repository**
+3. Inserisci:
+https://github.com/simone-losito/archivio-famiglia-addon
 
+4. Installa **Archivio Famiglia**
 
+---
 
-\## 🚀 Perché nasce
+## ⚙️ Configurazione
 
+Dopo l’installazione, configura:
 
+- **db_host** → `core-mariadb`
+- **db_name** → `homeassistant` (o altro DB)
+- **db_user** → `homeassistant`
+- **db_pass** → password MariaDB
 
-Questo progetto nasce da un’esigenza reale:
+---
 
+## 🧠 Primo avvio (Wizard automatico)
 
+Al primo avvio:
 
-> avere tutti i documenti importanti sempre disponibili, organizzati e accessibili anche da remoto
+✔ crea automaticamente:
+- Tabelle database
+- Categorie base
+- Documento PDF demo
+- Primo utente amministratore
 
+👉 Ti verrà chiesto solo:
+- username
+- password
 
+---
 
-Referti, documenti personali, fatture, pratiche…
+## 📂 Storage
 
-tutto in un unico posto, sotto il tuo controllo.
+I file vengono salvati in:
+/share/archivio
 
+Questo significa:
+- accessibili da Samba
+- persistenti anche dopo aggiornamenti
+- non vengono cancellati disinstallando l’add-on
 
+---
 
-\---
+## 🔐 Sicurezza
 
+- Password hashate (bcrypt)
+- Accesso controllato utenti attivi
+- Link temporanei con scadenza
 
+---
 
-\## ✨ Funzionalità principali
+## ⚠️ Note importanti
 
+- Se reinstalli l'add-on:
+  - ❌ NON perdi i dati se non cancelli `/share`
+  - ❌ NON perdi DB se non lo resetti
 
+- Il wizard si avvia solo se:
+  - database vuoto
+  - nessun utente presente
 
-\* 📄 Upload documenti (PDF, immagini, file vari)
+---
 
-\* 🗂️ Categorie con immagini personalizzate
+## 🧪 Porte
 
-\* 👁️ Preview file direttamente da browser
+L’add-on usa:
+Container: 8090
+Host: configurabile (es: 8091)
 
-\* 🔗 Link pubblici temporanei (con scadenza)
+---
 
-\* ⭐ Sistema preferiti (documenti importanti)
+## 🛠️ Tecnologie
 
-\* 🔍 Ricerca per nome documento
+- PHP 8.2
+- Apache
+- MariaDB
+- Docker (Home Assistant Add-on)
+- Vanilla JS + CSS custom
 
-\* 👥 Gestione utenti
+---
 
-\* 🌙 Tema Dark / ☀️ Light
+## 📌 Roadmap
 
-\* 🧠 Dashboard riepilogativa
+- [ ] Upload multiplo
+- [ ] Ricerca avanzata
+- [ ] Notifiche Home Assistant
+- [ ] App mobile
+- [ ] OCR documenti
+- [ ] Ruoli avanzati
 
-\* 💾 Backup interno
+---
 
+## 👨‍💻 Autore
 
+Simone Losito
 
-\---
+---
 
+## ☕ Supporta il progetto
 
+Se ti piace questo progetto:
 
-\## 🏠 Integrazione Home Assistant
+👉 offri un caffè  
+👉 condividilo  
+👉 proponilo ad aziende
 
+---
 
+## 📜 Licenza
 
-\* Avviabile come Add-on
-
-\* Interfaccia Web integrata
-
-\* Accesso da rete locale e remoto
-
-\* Compatibile con dashboard HA (iframe)
-
-
-
-\---
-
-
-
-\## ⚙️ Installazione
-
-
-
-1\. Vai su \*\*Home Assistant → Add-on → Repository\*\*
-
-2\. Aggiungi questo repository
-
-3\. Installa \*\*Archivio Famiglia\*\*
-
-4\. Avvia l’add-on
-
-5\. Accedi dalla Web UI
-
-
-
-\---
-
-
-
-\## 💖 Supporta il progetto
-
-
-
-Se questo progetto ti è utile puoi supportarlo qui:
-
-
-
-👉 \*\*PayPal\*\*
-
-https://paypal.me/simonelosito
-
-
-
-👉 \*\*Buy Me a Coffee\*\* \*(facoltativo, se lo aggiungerai)\*
-
-
-
-Ogni contributo aiuta a migliorare il progetto 🙏
-
-
-
-\---
-
-
-
-\## 🧑‍💻 Autore
-
-
-
-\*\*Simone Losito (Simoncino)\*\*
-
-
-
-Sviluppato per uso reale, non per demo.
-
-Testato su utilizzo quotidiano.
-
-
-
-\---
-
-
-
-\## ⚠️ Note importanti
-
-
-
-\* Non pubblicare dati sensibili nella repository
-
-\* Configura correttamente il database
-
-\* Se esposto su internet → usa HTTPS (consigliato)
-
-
-
-\---
-
-
-
-\## 🚧 Roadmap futura
-
-
-
-\* 🔐 Login integrato con Home Assistant
-
-\* 🌐 HTTPS automatico
-
-\* 📊 Statistiche utilizzo
-
-\* 📱 Miglioramenti mobile
-
-\* 📂 Gestione cartelle avanzata
-
-
-
-\---
-
-
-
-\## 📸 Preview
-
-
-
-\### 🌙 Dark mode
-
-!\[Dark](images/dark.png)
-
-
-
-\### ☀️ Light mode
-
-!\[Light](images/light.png)
-
-
-
-\### 📂 Categorie
-
-!\[Categorie](images/categorie.png)
-
-\---
-
-
-
-\## ⭐ Se ti piace
-
-
-
-Lascia una ⭐ su GitHub
-
-e aiutami a far crescere il progetto 😎
-
+MIT License
