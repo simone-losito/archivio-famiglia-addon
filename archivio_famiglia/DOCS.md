@@ -18,6 +18,12 @@ Se questo progetto ti è utile e vuoi supportarlo:
 Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
 </p>
 
+🔗 Repository ufficiale
+
+Puoi trovare il codice qui:
+
+👉 https://github.com/simone-losito/archivio-famiglia-addon
+
 ## 🚀 Primo utilizzo
 
 Al primo avvio vedrai una schermata di configurazione.
