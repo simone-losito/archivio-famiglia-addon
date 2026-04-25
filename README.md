@@ -1,7 +1,7 @@
 # 📁 Archivio Famiglia (Home Assistant Add-on)
 <p align="center">
 
-<img src="https://img.shields.io/badge/version-1.0.6-blue?style=for-the-badge">
+<img src="https://img.shields.io/badge/version-1.0.8-blue?style=for-the-badge">
 <img src="https://img.shields.io/badge/Home%20Assistant-Addon-41BDF5?style=for-the-badge&logo=homeassistant&logoColor=white">
 <img src="https://img.shields.io/badge/status-stable-success?style=for-the-badge">
 <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge">
