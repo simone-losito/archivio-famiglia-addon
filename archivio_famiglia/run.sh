@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
 set -e
 
+echo "Starting Archivio Famiglia..."
+
+# cartelle
 mkdir -p /share/archivio
 mkdir -p /var/www/html/backups
 
-if [ -e /var/www/html/uploads ] && [ ! -L /var/www/html/uploads ]; then
-  rm -rf /var/www/html/uploads
-fi
-
+# symlink upload
 if [ ! -L /var/www/html/uploads ]; then
-  ln -s /share/archivio /var/www/html/uploads
+    rm -rf /var/www/html/uploads
+    ln -s /share/archivio /var/www/html/uploads
 fi
 
-chown -R www-data:www-data /share/archivio || true
-chown -R www-data:www-data /var/www/html/backups || true
-chown -R www-data:www-data /var/www/html || true
+# permessi
+chown -R www-data:www-data /var/www/html
+chown -R www-data:www-data /share/archivio
 
-apache2-foreground
+# DEBUG
+echo "Contenuto /var/www/html:"
+ls -la /var/www/html
+
+# AVVIO APACHE
+exec apache2-foreground
