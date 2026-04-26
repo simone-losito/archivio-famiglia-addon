@@ -41,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-$pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
+$fileUrl = 'uploads/' . rawurlencode($category) . '/' . rawurlencode($file);
+$downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -56,15 +57,6 @@ $pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
     border-radius:22px;
     padding:16px;
     min-height:500px;
-}
-.preview-box iframe,
-.preview-box object,
-.preview-box embed{
-    width:100%;
-    height:80vh;
-    border:0;
-    border-radius:14px;
-    background:white;
 }
 .preview-box img{
     max-width:100%;
@@ -83,6 +75,38 @@ $pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
 .share-url{
     width:100%;
     margin-top:10px;
+}
+.pdf-toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:16px;
+}
+.pdf-viewer{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    align-items:center;
+}
+.pdf-page{
+    width:100%;
+    max-width:1100px;
+    background:white;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 10px 35px rgba(0,0,0,.25);
+}
+.pdf-page canvas{
+    width:100%;
+    height:auto;
+    display:block;
+}
+.pdf-loading{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--muted);
 }
 </style>
 </head>
@@ -113,7 +137,7 @@ $pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
             </div>
 
             <div class="toolbar">
-                <a class="btn btn-secondary" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica</a>
+                <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
                 <a class="btn btn-secondary" href="index.php?categoria=<?= urlencode($category) ?>">📂 Categoria</a>
                 <a class="btn btn-secondary" href="index.php">← Home</a>
             </div>
@@ -156,21 +180,19 @@ $pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
         <div class="preview-box">
             <?php if (in_array($ext, ['jpg','jpeg','png','gif','webp'], true)): ?>
 
-                <img src="uploads/<?= h($category) ?>/<?= h($file) ?>">
+                <img src="<?= h($fileUrl) ?>" alt="<?= h($file) ?>">
 
             <?php elseif ($ext === 'pdf'): ?>
 
-                <object data="<?= h($pdfUrl) ?>" type="application/pdf">
-                    <embed src="<?= h($pdfUrl) ?>" type="application/pdf">
-                        <div style="text-align:center;padding:80px 20px;">
-                            <h2>📄 Anteprima PDF non disponibile</h2>
-                            <p>Il browser non riesce a mostrare il PDF dentro la pagina.</p>
-                            <br>
-                            <a class="btn" href="<?= h($pdfUrl) ?>" target="_blank">👁️ Apri PDF</a>
-                            <a class="btn btn-secondary" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica PDF</a>
-                        </div>
-                    </embed>
-                </object>
+                <div class="pdf-toolbar">
+                    <button type="button" class="btn btn-secondary" onclick="zoomPdf(-0.15)">➖ Zoom</button>
+                    <button type="button" class="btn btn-secondary" onclick="zoomPdf(0.15)">➕ Zoom</button>
+                    <a class="btn btn-secondary" href="<?= h($fileUrl) ?>" target="_blank">↗️ Apri PDF</a>
+                    <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
+                </div>
+
+                <div id="pdfLoading" class="pdf-loading">Caricamento anteprima PDF...</div>
+                <div id="pdfViewer" class="pdf-viewer"></div>
 
             <?php else: ?>
 
@@ -178,7 +200,7 @@ $pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
                     <h2>Anteprima non disponibile</h2>
                     <p>Questo tipo di file può essere scaricato ma non visualizzato direttamente.</p>
                     <br>
-                    <a class="btn" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica file</a>
+                    <a class="btn" href="<?= h($downloadUrl) ?>">⬇️ Scarica file</a>
                 </div>
 
             <?php endif; ?>
@@ -220,6 +242,64 @@ function sharePublicLink() {
     }
 }
 </script>
+
+<?php if ($ext === 'pdf'): ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+let pdfDoc = null;
+let pdfScale = 1.25;
+const pdfUrl = <?= json_encode($fileUrl) ?>;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+async function renderPdf() {
+    const viewer = document.getElementById('pdfViewer');
+    const loading = document.getElementById('pdfLoading');
+
+    viewer.innerHTML = '';
+
+    try {
+        if (!pdfDoc) {
+            pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+        }
+
+        loading.style.display = 'none';
+
+        for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({scale: pdfScale});
+
+            const pageWrap = document.createElement('div');
+            pageWrap.className = 'pdf-page';
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            pageWrap.appendChild(canvas);
+            viewer.appendChild(pageWrap);
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+        }
+    } catch (e) {
+        loading.innerHTML = 'Anteprima PDF non disponibile. Usa il pulsante “Apri PDF” o “Scarica PDF”.';
+        console.error(e);
+    }
+}
+
+function zoomPdf(delta) {
+    pdfScale = Math.max(0.6, Math.min(2.5, pdfScale + delta));
+    renderPdf();
+}
+
+renderPdf();
+</script>
+<?php endif; ?>
 
 <script src="assets/js/theme.js"></script>
 </body>
