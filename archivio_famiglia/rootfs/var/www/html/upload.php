@@ -5,34 +5,64 @@ require_once __DIR__ . '/core/functions.php';
 
 requireLogin();
 
-function uploadErrorMessage(int $code): string {
+function uploadErrorMessage(int $code): string
+{
     return match ($code) {
-        UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'File troppo grande. Riduci la foto o aumenta il limite upload.',
+        UPLOAD_ERR_INI_SIZE,
+        UPLOAD_ERR_FORM_SIZE => 'File troppo grande. Limite massimo: 50 MB.',
         UPLOAD_ERR_PARTIAL => 'Upload incompleto. Riprova.',
         UPLOAD_ERR_NO_FILE => 'Nessun file selezionato.',
         UPLOAD_ERR_NO_TMP_DIR => 'Cartella temporanea mancante.',
         UPLOAD_ERR_CANT_WRITE => 'Impossibile scrivere il file su disco.',
         UPLOAD_ERR_EXTENSION => 'Upload bloccato da estensione PHP.',
-        default => 'Errore upload sconosciuto.'
+        default => 'Errore upload sconosciuto.',
     };
 }
 
-function nextDocName(string $category, string $ext): string {
+function hasUploadedFile(string $field): bool
+{
+    return isset($_FILES[$field]) && ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function nextDocName(string $category, string $ext): string
+{
+    $category = safeCategory($category);
+    $ext = strtolower(trim($ext));
+
     $dir = UPLOAD_DIR . '/' . $category;
-    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0775, true);
+    }
 
     $max = 0;
-    foreach (array_diff(scandir($dir), ['.','..']) as $f) {
-        if (preg_match('/DOC-(\d+)/', $f, $m)) {
-            $max = max($max, (int)$m[1]);
+    $files = scandir($dir);
+
+    if (is_array($files)) {
+        foreach (array_diff($files, ['.', '..']) as $f) {
+            if (preg_match('/^DOC-(\d+)/', $f, $m)) {
+                $max = max($max, (int)$m[1]);
+            }
         }
     }
 
-    return 'DOC-' . str_pad($max + 1, 4, '0', STR_PAD_LEFT) . ($ext ? '.' . strtolower($ext) : '');
+    return 'DOC-' . str_pad($max + 1, 4, '0', STR_PAD_LEFT) . ($ext !== '' ? '.' . $ext : '');
 }
 
-function hasUploadedFile(string $field): bool {
-    return isset($_FILES[$field]) && ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+function detectMime(string $tmpPath): string
+{
+    if (!is_file($tmpPath)) {
+        return '';
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    if (!$finfo) {
+        return '';
+    }
+
+    $mime = finfo_file($finfo, $tmpPath);
+    finfo_close($finfo);
+
+    return is_string($mime) ? $mime : '';
 }
 
 $uploadField = null;
@@ -48,36 +78,74 @@ if ($uploadField === null) {
     exit;
 }
 
-$errorCode = (int)($_FILES[$uploadField]['error'] ?? UPLOAD_ERR_NO_FILE);
+$file = $_FILES[$uploadField];
+
+$errorCode = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
 if ($errorCode !== UPLOAD_ERR_OK) {
     header("Location: index.php?msg=" . urlencode(uploadErrorMessage($errorCode)));
     exit;
 }
 
-$categories = getCategories();
-$category = $_POST['category'] ?? 'altro';
-if (!isset($categories[$category])) $category = 'altro';
-
-$nomeOriginale = basename($_FILES[$uploadField]['name'] ?? '');
-$ext = strtolower(pathinfo($nomeOriginale, PATHINFO_EXTENSION));
-
-if ($uploadField === 'file_foto') {
-    if ($ext === '') {
-        $ext = 'jpg';
-    }
-
-    if ($nomeOriginale === '') {
-        $nomeOriginale = 'foto_documento.' . $ext;
-    }
+$fileSize = (int)($file['size'] ?? 0);
+if ($fileSize <= 0) {
+    header("Location: index.php?msg=" . urlencode("File vuoto o non valido"));
+    exit;
 }
 
-$titolo = trim($_POST['titolo'] ?? '');
+if ($fileSize > MAX_UPLOAD_SIZE) {
+    header("Location: index.php?msg=" . urlencode("File troppo grande. Limite massimo: 50 MB."));
+    exit;
+}
+
+$categories = getCategories();
+$category = safeCategory((string)($_POST['category'] ?? 'altro'));
+
+if (!isset($categories[$category])) {
+    $category = isset($categories['altro']) ? 'altro' : safeCategory($category);
+}
+
+$nomeOriginale = safeFilename((string)($file['name'] ?? ''));
+
+if ($nomeOriginale === 'file') {
+    $nomeOriginale = $uploadField === 'file_foto' ? 'foto_documento.jpg' : 'documento';
+}
+
+$ext = strtolower(pathinfo($nomeOriginale, PATHINFO_EXTENSION));
+
+if ($uploadField === 'file_foto' && $ext === '') {
+    $ext = 'jpg';
+    $nomeOriginale .= '.jpg';
+}
+
+if ($ext === '') {
+    header("Location: index.php?msg=" . urlencode("File senza estensione non consentito"));
+    exit;
+}
+
+if (!in_array($ext, ALLOWED_EXTENSIONS, true)) {
+    header("Location: index.php?msg=" . urlencode("Estensione file non consentita: " . $ext));
+    exit;
+}
+
+$tmpPath = (string)($file['tmp_name'] ?? '');
+$mime = detectMime($tmpPath);
+
+if ($mime !== '' && !in_array($mime, ALLOWED_MIME_TYPES, true)) {
+    header("Location: index.php?msg=" . urlencode("Tipo file non consentito: " . $mime));
+    exit;
+}
+
+if ($uploadField === 'file_foto' && !str_starts_with($mime, 'image/')) {
+    header("Location: index.php?msg=" . urlencode("La foto deve essere un'immagine valida"));
+    exit;
+}
+
+$titolo = trim((string)($_POST['titolo'] ?? ''));
 
 if ($titolo === '') {
     $titolo = pathinfo($nomeOriginale, PATHINFO_FILENAME);
 }
 
-/* BLOCCO DOPPIONI PER NOME DOCUMENTO */
 $stmt = $conn->prepare("SELECT id FROM documenti WHERE titolo = ? LIMIT 1");
 $stmt->bind_param("s", $titolo);
 $stmt->execute();
@@ -89,39 +157,48 @@ if ($exists) {
 }
 
 $dir = UPLOAD_DIR . '/' . $category;
-if (!is_dir($dir)) mkdir($dir, 0775, true);
+if (!is_dir($dir)) {
+    mkdir($dir, 0775, true);
+}
 
 $nomeArchivio = nextDocName($category, $ext);
 $dest = $dir . '/' . $nomeArchivio;
 
-$note = trim($_POST['note'] ?? '');
-$tags = trim($_POST['tags'] ?? '');
-$dataDocumento = trim($_POST['data_documento'] ?? '');
-if ($dataDocumento === '') $dataDocumento = null;
+$note = trim((string)($_POST['note'] ?? ''));
+$tags = trim((string)($_POST['tags'] ?? ''));
+$dataDocumento = trim((string)($_POST['data_documento'] ?? ''));
+
+if ($dataDocumento !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataDocumento)) {
+    $dataDocumento = '';
+}
+
+if ($dataDocumento === '') {
+    $dataDocumento = null;
+}
 
 if ($uploadField === 'file_foto') {
     $tags = trim($tags . ($tags !== '' ? ', ' : '') . 'foto, smartphone');
     $note = trim($note . ($note !== '' ? "\n" : '') . 'Documento acquisito tramite fotocamera smartphone.');
 }
 
-if (move_uploaded_file($_FILES[$uploadField]['tmp_name'], $dest)) {
-    chmod($dest, 0664);
-
-    $stmt = $conn->prepare("
-        INSERT INTO documenti
-        (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->bind_param("sssssss", $nomeArchivio, $nomeOriginale, $titolo, $category, $note, $tags, $dataDocumento);
-    $stmt->execute();
-
-    $msg = ($uploadField === 'file_foto')
-        ? "Foto documento caricata: $titolo"
-        : "File caricato: $titolo";
-
-    header("Location: index.php?msg=" . urlencode($msg));
+if (!move_uploaded_file($tmpPath, $dest)) {
+    header("Location: index.php?msg=" . urlencode("Errore upload: impossibile salvare il file"));
     exit;
 }
 
-header("Location: index.php?msg=" . urlencode("Errore upload: impossibile salvare il file"));
+chmod($dest, 0664);
+
+$stmt = $conn->prepare("
+    INSERT INTO documenti
+    (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+");
+$stmt->bind_param("sssssss", $nomeArchivio, $nomeOriginale, $titolo, $category, $note, $tags, $dataDocumento);
+$stmt->execute();
+
+$msg = ($uploadField === 'file_foto')
+    ? "Foto documento caricata: $titolo"
+    : "File caricato: $titolo";
+
+header("Location: index.php?msg=" . urlencode($msg));
 exit;
