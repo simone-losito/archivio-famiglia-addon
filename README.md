@@ -154,8 +154,10 @@ Permette di caricare, cercare, visualizzare, scaricare, modificare e condividere
 2. Clicca sui **tre puntini** in alto a destra
 3. Apri **Repository**
 4. Inserisci questo URL:
+   
    ```text
 https://github.com/simone-losito/archivio-famiglia-addon
+
 5. Installa Archivio Famiglia
 6. Configura i dati MariaDB
 7. Avvia l’add-on
