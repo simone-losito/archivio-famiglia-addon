@@ -11,40 +11,52 @@ function h($v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
-// 📊 STATISTICHE
+function getAddonVersion(): string {
+    $file = '/etc/archivio_famiglia_config.yaml';
 
-// Documenti totali
-$resDoc = $conn->query("SELECT COUNT(*) AS tot FROM documenti");
-$totDocumenti = $resDoc ? (int)$resDoc->fetch_assoc()['tot'] : 0;
+    if (!is_file($file)) {
+        return 'unknown';
+    }
 
-// Utenti totali
-$resUser = $conn->query("SELECT COUNT(*) AS tot FROM utenti");
-$totUtenti = $resUser ? (int)$resUser->fetch_assoc()['tot'] : 0;
+    $content = file_get_contents($file);
 
-// Spazio occupato
-function folderSize($dir) {
+    if (preg_match('/^version:\s*[\"\']?([^\"\']+)[\"\']?/m', $content, $m)) {
+        return trim($m[1]);
+    }
+
+    return 'unknown';
+}
+
+function folderSize($dir): int {
     $size = 0;
     if (!is_dir($dir)) return 0;
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)) as $file) {
         $size += $file->getSize();
     }
+
     return $size;
 }
 
-function formatSize($bytes) {
+function formatSize($bytes): string {
     if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
     if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
     if ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
     return $bytes . ' B';
 }
 
-$uploadDir = __DIR__ . '/uploads';
+$addonVersion = getAddonVersion();
+
+$resDoc = $conn->query("SELECT COUNT(*) AS tot FROM documenti");
+$totDocumenti = $resDoc ? (int)$resDoc->fetch_assoc()['tot'] : 0;
+
+$resUser = $conn->query("SELECT COUNT(*) AS tot FROM utenti");
+$totUtenti = $resUser ? (int)$resUser->fetch_assoc()['tot'] : 0;
+
+$uploadDir = is_dir('/share/archivio') ? '/share/archivio' : (__DIR__ . '/uploads');
 $spazio = formatSize(folderSize($uploadDir));
 ?>
-
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -58,9 +70,10 @@ $spazio = formatSize(folderSize($uploadDir));
 .center{
     text-align:center;
 }
-.logo{
+.logo-img{
     width:140px;
     margin:0 auto 20px;
+    display:block;
 }
 .info-box{
     margin-top:20px;
@@ -93,76 +106,89 @@ $spazio = formatSize(folderSize($uploadDir));
     font-size:18px;
     margin-top:10px;
 }
+.author-line{
+    color:var(--muted);
+    margin-top:6px;
+}
 </style>
 </head>
 <body>
 
 <div class="wrap">
 
-```
-<div class="center">
-    <img src="assets/logo.png" class="logo">
-    <h1>Archivio Famiglia</h1>
-    <p class="big">Gestione documentale familiare</p>
-    <p><b>Versione:</b> 1.0.9</p>
-</div>
+    <div class="center">
+        <img src="assets/logo.png" class="logo-img" alt="Archivio Famiglia">
+        <h1>Archivio Famiglia</h1>
+        <p class="big">Gestione documentale familiare integrata in Home Assistant</p>
+        <p><b>Versione:</b> <?= h($addonVersion) ?></p>
+        <p class="author-line">by <b>SimoncinoProjects</b> / Simone Losito</p>
+    </div>
 
-<!-- 📊 STATISTICHE -->
-<div class="info-box">
-    <h2>📊 Statistiche archivio</h2>
+    <div class="info-box">
+        <h2>📊 Statistiche archivio</h2>
 
-    <div class="stats">
-        <div class="stat">
-            📄 Documenti
-            <b><?= $totDocumenti ?></b>
-        </div>
+        <div class="stats">
+            <div class="stat">
+                📄 Documenti
+                <b><?= (int)$totDocumenti ?></b>
+            </div>
 
-        <div class="stat">
-            👥 Utenti
-            <b><?= $totUtenti ?></b>
-        </div>
+            <div class="stat">
+                👥 Utenti
+                <b><?= (int)$totUtenti ?></b>
+            </div>
 
-        <div class="stat">
-            💾 Spazio utilizzato
-            <b><?= h($spazio) ?></b>
+            <div class="stat">
+                💾 Spazio utilizzato
+                <b><?= h($spazio) ?></b>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="info-box">
-    <h2>👨‍💻 Autore</h2>
-    <p><b>SimoncinoProjects</b></p>
-    <p>by Simone Losito</p>
-</div>
+    <div class="info-box">
+        <h2>👨‍💻 Autore</h2>
+        <p><b>SimoncinoProjects</b></p>
+        <p>Creato e mantenuto da <b>Simone Losito</b>.</p>
+    </div>
 
-<div class="info-box center">
-    <h2>🔗 Repository</h2>
-    <a href="https://github.com/simone-losito/archivio-famiglia-addon" target="_blank">
-        Vai al progetto su GitHub
-    </a>
-</div>
+    <div class="info-box center">
+        <h2>🔗 Repository</h2>
+        <p>
+            <a href="https://github.com/simone-losito/archivio-famiglia-addon" target="_blank">
+                Vai al progetto su GitHub
+            </a>
+        </p>
+    </div>
 
-<div class="info-box center">
-    <h2>☕ Supporta il progetto</h2>
-    <p>
-        <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
-            <img src="https://img.shields.io/badge/Supporta%20il%20progetto-PayPal-blue?style=for-the-badge&logo=paypal">
-        </a>
-    </p>
-</div>
+    <div class="info-box center">
+        <h2>📜 Changelog</h2>
+        <p>
+            <a href="https://github.com/simone-losito/archivio-famiglia-addon/blob/main/CHANGELOG.md" target="_blank">
+                Vedi storico versioni
+            </a>
+        </p>
+    </div>
 
-<div class="info-box">
-    <h2>⚙️ Info tecniche</h2>
-    <p>PHP 8 + Apache</p>
-    <p>Database: MariaDB</p>
-    <p>Storage: /share/archivio</p>
-    <p>Addon Home Assistant</p>
-</div>
-```
+    <div class="info-box center">
+        <h2>☕ Supporta il progetto</h2>
+        <p>Se ti è utile puoi offrire un caffè allo sviluppo.</p>
+        <p>
+            <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
+                <img src="https://img.shields.io/badge/Supporta%20il%20progetto-PayPal-blue?style=for-the-badge&logo=paypal" alt="Supporta con PayPal">
+            </a>
+        </p>
+    </div>
+
+    <div class="info-box">
+        <h2>⚙️ Info tecniche</h2>
+        <p>PHP 8 + Apache</p>
+        <p>Database: MariaDB</p>
+        <p>Storage: /share/archivio</p>
+        <p>Addon Home Assistant</p>
+    </div>
 
 </div>
 
 <script src="assets/js/theme.js"></script>
-
 </body>
 </html>
