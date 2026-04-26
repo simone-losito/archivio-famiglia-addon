@@ -15,6 +15,31 @@ if (!is_file($path)) {
     exit('File non trovato');
 }
 
+$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+$mimeTypes = [
+    'pdf'  => 'application/pdf',
+    'jpg'  => 'image/jpeg',
+    'jpeg' => 'image/jpeg',
+    'png'  => 'image/png',
+    'gif'  => 'image/gif',
+    'webp' => 'image/webp',
+];
+
+/*
+ * Modalità anteprima sicura.
+ * Invece di puntare direttamente a /uploads/...,
+ * serviamo il file da PHP con header inline.
+ */
+if (isset($_GET['raw']) && $_GET['raw'] === '1') {
+    header('X-Content-Type-Options: nosniff');
+    header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
+    header('Content-Disposition: inline; filename="' . basename($file) . '"');
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
+    exit;
+}
+
 $msg = '';
 $publicUrl = '';
 
@@ -43,9 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
     $msg = "Link pubblico creato. Scade tra $days giorno/i.";
 }
 
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-$fileUrl = 'uploads/' . rawurlencode($category) . '/' . rawurlencode($file);
+$previewUrl = 'view.php?category=' . urlencode($category) . '&file=' . urlencode($file) . '&raw=1';
 $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urlencode($file);
 ?>
 <!DOCTYPE html>
@@ -159,11 +182,11 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
         <div class="preview-box">
             <?php if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)): ?>
 
-                <img src="<?= h($fileUrl) ?>" alt="<?= h($file) ?>">
+                <img src="<?= h($previewUrl) ?>" alt="<?= h($file) ?>">
 
             <?php elseif ($ext === 'pdf'): ?>
 
-                <iframe src="<?= h($fileUrl) ?>"></iframe>
+                <iframe src="<?= h($previewUrl) ?>"></iframe>
 
             <?php else: ?>
 
