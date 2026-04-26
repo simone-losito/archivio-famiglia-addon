@@ -5,6 +5,18 @@ require_once __DIR__ . '/core/functions.php';
 
 requireLogin();
 
+function uploadErrorMessage(int $code): string {
+    return match ($code) {
+        UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'File troppo grande. Riduci la foto o aumenta il limite upload.',
+        UPLOAD_ERR_PARTIAL => 'Upload incompleto. Riprova.',
+        UPLOAD_ERR_NO_FILE => 'Nessun file selezionato.',
+        UPLOAD_ERR_NO_TMP_DIR => 'Cartella temporanea mancante.',
+        UPLOAD_ERR_CANT_WRITE => 'Impossibile scrivere il file su disco.',
+        UPLOAD_ERR_EXTENSION => 'Upload bloccato da estensione PHP.',
+        default => 'Errore upload sconosciuto.'
+    };
+}
+
 function nextDocName(string $category, string $ext): string {
     $dir = UPLOAD_DIR . '/' . $category;
     if (!is_dir($dir)) mkdir($dir, 0775, true);
@@ -19,19 +31,16 @@ function nextDocName(string $category, string $ext): string {
     return 'DOC-' . str_pad($max + 1, 4, '0', STR_PAD_LEFT) . ($ext ? '.' . strtolower($ext) : '');
 }
 
-function uploadedOk(string $field): bool {
-    return isset($_FILES[$field])
-        && isset($_FILES[$field]['error'])
-        && $_FILES[$field]['error'] === UPLOAD_ERR_OK
-        && !empty($_FILES[$field]['name']);
+function hasUploadedFile(string $field): bool {
+    return isset($_FILES[$field]) && ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
 }
 
 $uploadField = null;
 
-if (uploadedOk('file')) {
-    $uploadField = 'file';
-} elseif (uploadedOk('file_foto')) {
+if (hasUploadedFile('file_foto')) {
     $uploadField = 'file_foto';
+} elseif (hasUploadedFile('file')) {
+    $uploadField = 'file';
 }
 
 if ($uploadField === null) {
@@ -39,16 +48,27 @@ if ($uploadField === null) {
     exit;
 }
 
+$errorCode = (int)($_FILES[$uploadField]['error'] ?? UPLOAD_ERR_NO_FILE);
+if ($errorCode !== UPLOAD_ERR_OK) {
+    header("Location: index.php?msg=" . urlencode(uploadErrorMessage($errorCode)));
+    exit;
+}
+
 $categories = getCategories();
 $category = $_POST['category'] ?? 'altro';
 if (!isset($categories[$category])) $category = 'altro';
 
-$nomeOriginale = basename($_FILES[$uploadField]['name']);
+$nomeOriginale = basename($_FILES[$uploadField]['name'] ?? '');
 $ext = strtolower(pathinfo($nomeOriginale, PATHINFO_EXTENSION));
 
-if ($uploadField === 'file_foto' && $ext === '') {
-    $ext = 'jpg';
-    $nomeOriginale = 'foto_documento.jpg';
+if ($uploadField === 'file_foto') {
+    if ($ext === '') {
+        $ext = 'jpg';
+    }
+
+    if ($nomeOriginale === '') {
+        $nomeOriginale = 'foto_documento.' . $ext;
+    }
 }
 
 $titolo = trim($_POST['titolo'] ?? '');
@@ -85,6 +105,8 @@ if ($uploadField === 'file_foto') {
 }
 
 if (move_uploaded_file($_FILES[$uploadField]['tmp_name'], $dest)) {
+    chmod($dest, 0664);
+
     $stmt = $conn->prepare("
         INSERT INTO documenti
         (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento)
@@ -101,5 +123,5 @@ if (move_uploaded_file($_FILES[$uploadField]['tmp_name'], $dest)) {
     exit;
 }
 
-header("Location: index.php?msg=" . urlencode("Errore upload"));
+header("Location: index.php?msg=" . urlencode("Errore upload: impossibile salvare il file"));
 exit;
