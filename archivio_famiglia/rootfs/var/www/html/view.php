@@ -186,9 +186,17 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
 
             <?php elseif ($ext === 'pdf'): ?>
 
-                <iframe src="<?= h($previewUrl) ?>"></iframe>
+    <div style="text-align:center;padding:80px 20px;">
+        <h2>📄 Documento PDF</h2>
+        <p>Per evitare blocchi del browser o dell’estensione Adobe, apri il PDF in una nuova scheda.</p>
+        <br>
+        <div class="toolbar" style="justify-content:center;">
+            <a class="btn" href="<?= h($previewUrl) ?>" target="_blank">👁️ Apri PDF</a>
+            <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
+        </div>
+    </div>
 
-            <?php else: ?>
+<?php else: ?>
 
                 <div style="text-align:center;padding:80px 20px;">
                     <h2>Anteprima non disponibile</h2>
