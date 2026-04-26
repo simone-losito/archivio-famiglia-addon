@@ -7,6 +7,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN echo "upload_max_filesize=50M" > /usr/local/etc/php/conf.d/archivio-uploads.ini \
+    && echo "post_max_size=60M" >> /usr/local/etc/php/conf.d/archivio-uploads.ini \
+    && echo "max_file_uploads=20" >> /usr/local/etc/php/conf.d/archivio-uploads.ini \
+    && echo "memory_limit=256M" >> /usr/local/etc/php/conf.d/archivio-uploads.ini
+
 COPY rootfs/ /
 COPY run.sh /run.sh
 COPY config.yaml /etc/archivio_famiglia_config.yaml
