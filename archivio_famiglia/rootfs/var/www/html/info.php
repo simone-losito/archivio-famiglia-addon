@@ -62,7 +62,7 @@ $logoSrc = is_file($localLogo)
     : 'https://raw.githubusercontent.com/simone-losito/archivio-famiglia-addon/main/assets/logo.png';
 
 $repoUrl = 'https://github.com/simone-losito/archivio-famiglia-addon';
-$changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
+$changelogUrl = $repoUrl . '/blob/main/archivio_famiglia/CHANGELOG.md';
 ?>
 <!DOCTYPE html>
 <html lang="it">
