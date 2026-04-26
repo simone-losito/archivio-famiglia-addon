@@ -67,6 +67,7 @@ Puoi:
 - Inserire note
 - Aggiungere tag
 - Segnarli come ⭐ preferiti
+- 📷 Upload da fotocamera smartphone
 
 ---
 
