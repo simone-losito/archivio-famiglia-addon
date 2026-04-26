@@ -245,7 +245,7 @@ function sharePublicLink() {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 let pdfDoc = null;
-let pdfScale = 1.25;
+const pdfScale = 1.25;
 const pdfUrl = <?= json_encode($fileUrl) ?>;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -288,11 +288,6 @@ async function renderPdf() {
         loading.innerHTML = 'Anteprima PDF non disponibile. Usa il pulsante “Apri PDF” o “Scarica PDF”.';
         console.error(e);
     }
-}
-
-function zoomPdf(delta) {
-    pdfScale = Math.max(0.6, Math.min(2.5, pdfScale + delta));
-    renderPdf();
 }
 
 renderPdf();
