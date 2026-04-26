@@ -26,11 +26,6 @@ $mimeTypes = [
     'webp' => 'image/webp',
 ];
 
-/*
- * Modalità anteprima sicura.
- * Invece di puntare direttamente a /uploads/...,
- * serviamo il file da PHP con header inline.
- */
 if (isset($_GET['raw']) && $_GET['raw'] === '1') {
     header('X-Content-Type-Options: nosniff');
     header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
@@ -68,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
     $msg = "Link pubblico creato. Scade tra $days giorno/i.";
 }
 
+$fileUrl = 'uploads/' . rawurlencode($category) . '/' . rawurlencode($file);
 $previewUrl = 'view.php?category=' . urlencode($category) . '&file=' . urlencode($file) . '&raw=1';
 $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urlencode($file);
 ?>
@@ -186,17 +182,14 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
 
             <?php elseif ($ext === 'pdf'): ?>
 
-    <div style="text-align:center;padding:80px 20px;">
-        <h2>📄 Documento PDF</h2>
-        <p>Per evitare blocchi del browser o dell’estensione Adobe, apri il PDF in una nuova scheda.</p>
-        <br>
-        <div class="toolbar" style="justify-content:center;">
-            <a class="btn" href="<?= h($previewUrl) ?>" target="_blank">👁️ Apri PDF</a>
-            <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
-        </div>
-    </div>
+                <div class="toolbar" style="justify-content:center;margin-bottom:14px;">
+                    <a class="btn btn-secondary" href="<?= h($previewUrl) ?>" target="_blank">↗️ Apri PDF in nuova scheda</a>
+                    <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
+                </div>
 
-<?php else: ?>
+                <iframe src="<?= h($fileUrl) ?>"></iframe>
+
+            <?php else: ?>
 
                 <div style="text-align:center;padding:80px 20px;">
                     <h2>Anteprima non disponibile</h2>
