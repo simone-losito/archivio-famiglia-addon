@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/functions.php';
@@ -11,9 +11,12 @@ if (!$checkInstall || $checkInstall->num_rows === 0) {
 
 requireLogin();
 
-$msg = $_GET['msg'] ?? '';
+$msg = trim($_GET['msg'] ?? '');
+
 $view = $_GET['view'] ?? 'card';
-if (!in_array($view, ['card', 'list'], true)) $view = 'card';
+if (!in_array($view, ['card', 'list'], true)) {
+    $view = 'card';
+}
 
 $search = trim($_GET['search'] ?? '');
 $categoria = trim($_GET['categoria'] ?? '');
@@ -34,15 +37,21 @@ if ($imgRes) {
 
 $totalDocs = 0;
 $totalResult = $conn->query("SELECT COUNT(*) AS totale FROM documenti");
-if ($totalResult) $totalDocs = (int)$totalResult->fetch_assoc()['totale'];
+if ($totalResult) {
+    $totalDocs = (int)($totalResult->fetch_assoc()['totale'] ?? 0);
+}
 
 $totalPreferiti = 0;
 $prefResult = $conn->query("SELECT COUNT(*) AS totale FROM documenti WHERE preferito = 1");
-if ($prefResult) $totalPreferiti = (int)$prefResult->fetch_assoc()['totale'];
+if ($prefResult) {
+    $totalPreferiti = (int)($prefResult->fetch_assoc()['totale'] ?? 0);
+}
 
 $senzaData = 0;
 $noDateResult = $conn->query("SELECT COUNT(*) AS totale FROM documenti WHERE data_documento IS NULL");
-if ($noDateResult) $senzaData = (int)$noDateResult->fetch_assoc()['totale'];
+if ($noDateResult) {
+    $senzaData = (int)($noDateResult->fetch_assoc()['totale'] ?? 0);
+}
 
 $categoryCounts = [];
 $countResult = $conn->query("SELECT categoria, COUNT(*) AS totale FROM documenti GROUP BY categoria");
@@ -95,11 +104,15 @@ if ($soloPreferiti) {
 }
 
 $sql = "SELECT * FROM documenti";
-if ($where) $sql .= " WHERE " . implode(" AND ", $where);
+if ($where) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
 $sql .= " ORDER BY preferito DESC, CASE WHEN data_documento IS NULL THEN 1 ELSE 0 END, data_documento DESC, id DESC";
 
 $stmt = $conn->prepare($sql);
-if ($params) $stmt->bind_param($types, ...$params);
+if ($params) {
+    $stmt->bind_param($types, ...$params);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 $filteredCount = $result ? $result->num_rows : 0;
@@ -107,44 +120,90 @@ $filteredCount = $result ? $result->num_rows : 0;
 $recentDocs = $conn->query("SELECT * FROM documenti ORDER BY id DESC LIMIT 5");
 $favDocs = $conn->query("SELECT * FROM documenti WHERE preferito = 1 ORDER BY id DESC LIMIT 6");
 
-function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+if (!function_exists('fmtDate')) {
+    function fmtDate(?string $date): string
+    {
+        if (!$date) {
+            return 'Senza data';
+        }
 
-function fmtDate(?string $date): string {
-    if (!$date) return 'Senza data';
-    $ts = strtotime($date);
-    return $ts ? date('d/m/Y', $ts) : 'Senza data';
+        $ts = strtotime($date);
+        return $ts ? date('d/m/Y', $ts) : 'Senza data';
+    }
 }
 
-function extIcon(string $filename): string {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    return match($ext) {
-        'pdf' => '📄',
-        'jpg','jpeg','png','gif','webp' => '🖼️',
-        'doc','docx' => '📝',
-        'xls','xlsx','csv' => '📊',
-        'zip','rar','7z','tar','gz' => '🗜️',
-        default => '📎'
-    };
+if (!function_exists('extIcon')) {
+    function extIcon(string $filename): string
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        return match ($ext) {
+            'pdf' => '📄',
+            'jpg', 'jpeg', 'png', 'gif', 'webp' => '🖼️',
+            'doc', 'docx' => '📝',
+            'xls', 'xlsx', 'csv' => '📊',
+            'zip', 'rar', '7z', 'tar', 'gz' => '🗜️',
+            default => '📎',
+        };
+    }
 }
 
-function docTitle(array $row): string {
-    $titolo = trim((string)($row['titolo'] ?? ''));
-    if ($titolo !== '') return $titolo;
-    return trim((string)($row['nome_originale'] ?? 'Documento'));
+if (!function_exists('docTitle')) {
+    function docTitle(array $row): string
+    {
+        $titolo = trim((string)($row['titolo'] ?? ''));
+        if ($titolo !== '') {
+            return $titolo;
+        }
+
+        return trim((string)($row['nome_originale'] ?? 'Documento')) ?: 'Documento';
+    }
 }
 
-function buildBackUrl(): string {
-    return $_SERVER['REQUEST_URI'] ?? 'index.php';
+if (!function_exists('buildBackUrl')) {
+    function buildBackUrl(): string
+    {
+        return $_SERVER['REQUEST_URI'] ?? 'index.php';
+    }
 }
 
-$queryBase = http_build_query([
+$queryParams = [
     'search' => $search,
     'categoria' => $categoria,
     'anno' => $anno,
     'mese' => $mese,
     'data_precisa' => $dataPrecisa,
-    'preferiti' => $soloPreferiti ? '1' : '',
-]);
+];
+
+if ($soloPreferiti) {
+    $queryParams['preferiti'] = '1';
+}
+
+$queryBase = http_build_query(array_filter($queryParams, static fn($v) => $v !== '' && $v !== null));
+
+function documentPreviewUrl(array $row): string
+{
+    $cat = safeCategory((string)($row['categoria'] ?? ''));
+    $file = safeFilename((string)($row['nome_archivio'] ?? ''));
+
+    return "view.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+}
+
+function documentDownloadUrl(array $row): string
+{
+    $cat = safeCategory((string)($row['categoria'] ?? ''));
+    $file = safeFilename((string)($row['nome_archivio'] ?? ''));
+
+    return "download.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+}
+
+function documentDeleteUrl(array $row): string
+{
+    $cat = safeCategory((string)($row['categoria'] ?? ''));
+    $file = safeFilename((string)($row['nome_archivio'] ?? ''));
+
+    return "delete.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -235,7 +294,7 @@ $queryBase = http_build_query([
     <div class="menu">
         <a href="index.php" class="active">🏠 Home</a>
         <a href="categorie.php">⚙️ Categorie</a>
-        <?php if(isAdmin()): ?>
+        <?php if (isAdmin()): ?>
             <a href="utenti.php">👥 Utenti</a>
             <a href="backup.php">💾 Backup</a>
         <?php endif; ?>
@@ -255,10 +314,15 @@ $queryBase = http_build_query([
             </div>
             <div class="toolbar">
                 <span class="badge">👤 <?= h($_SESSION['username'] ?? '') ?></span>
-                <a class="btn btn-secondary" href="backup.php">💾 Backup</a>
+                <?php if (isAdmin()): ?>
+                    <a class="btn btn-secondary" href="backup.php">💾 Backup</a>
+                <?php endif; ?>
             </div>
         </div>
-        <?php if($msg): ?><p class="success"><?= h($msg) ?></p><?php endif; ?>
+
+        <?php if ($msg): ?>
+            <p class="success"><?= h($msg) ?></p>
+        <?php endif; ?>
     </div>
 
     <div class="dashboard-grid">
@@ -268,32 +332,32 @@ $queryBase = http_build_query([
         <div class="stat-card"><small>Senza data</small><strong><?= (int)$senzaData ?></strong></div>
     </div>
 
-    <?php if($favDocs && $favDocs->num_rows > 0): ?>
-    <div class="card">
-        <div class="topbar">
-            <div>
-                <h2>⭐ Documenti importanti</h2>
-                <p>Accesso rapido ai documenti segnati come preferiti.</p>
+    <?php if ($favDocs && $favDocs->num_rows > 0): ?>
+        <div class="card">
+            <div class="topbar">
+                <div>
+                    <h2>⭐ Documenti importanti</h2>
+                    <p>Accesso rapido ai documenti segnati come preferiti.</p>
+                </div>
+                <a class="btn btn-secondary" href="index.php?preferiti=1">Vedi tutti i preferiti</a>
             </div>
-            <a class="btn btn-secondary" href="index.php?preferiti=1">Vedi tutti i preferiti</a>
-        </div>
 
-        <div class="mini-grid">
-            <?php while($f = $favDocs->fetch_assoc()): ?>
-                <?php
-                    $cat = $f['categoria'];
-                    $url = "view.php?category=" . urlencode($cat) . "&file=" . urlencode($f['nome_archivio']);
-                ?>
-                <a class="mini-doc" href="<?= h($url) ?>" target="_blank">
-                    <div class="mini-icon"><?= extIcon($f['nome_archivio']) ?></div>
-                    <div>
-                        <div class="mini-title"><?= h(docTitle($f)) ?></div>
-                        <div class="mini-sub"><?= h($categories[$cat] ?? $cat) ?> · <?= h(fmtDate($f['data_documento'] ?? null)) ?></div>
-                    </div>
-                </a>
-            <?php endwhile; ?>
+            <div class="mini-grid">
+                <?php while ($f = $favDocs->fetch_assoc()): ?>
+                    <?php
+                    $cat = safeCategory((string)($f['categoria'] ?? ''));
+                    $url = documentPreviewUrl($f);
+                    ?>
+                    <a class="mini-doc" href="<?= h($url) ?>" target="_blank">
+                        <div class="mini-icon"><?= extIcon((string)$f['nome_archivio']) ?></div>
+                        <div>
+                            <div class="mini-title"><?= h(docTitle($f)) ?></div>
+                            <div class="mini-sub"><?= h($categories[$cat] ?? $cat) ?> · <?= h(fmtDate($f['data_documento'] ?? null)) ?></div>
+                        </div>
+                    </a>
+                <?php endwhile; ?>
+            </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <div class="card">
@@ -305,14 +369,14 @@ $queryBase = http_build_query([
         </div>
 
         <div class="mini-grid">
-            <?php if($recentDocs && $recentDocs->num_rows > 0): ?>
-                <?php while($r = $recentDocs->fetch_assoc()): ?>
+            <?php if ($recentDocs && $recentDocs->num_rows > 0): ?>
+                <?php while ($r = $recentDocs->fetch_assoc()): ?>
                     <?php
-                        $cat = $r['categoria'];
-                        $url = "view.php?category=" . urlencode($cat) . "&file=" . urlencode($r['nome_archivio']);
+                    $cat = safeCategory((string)($r['categoria'] ?? ''));
+                    $url = documentPreviewUrl($r);
                     ?>
                     <a class="mini-doc" href="<?= h($url) ?>" target="_blank">
-                        <div class="mini-icon"><?= extIcon($r['nome_archivio']) ?></div>
+                        <div class="mini-icon"><?= extIcon((string)$r['nome_archivio']) ?></div>
                         <div>
                             <div class="mini-title"><?= h(docTitle($r)) ?></div>
                             <div class="mini-sub"><?= h($categories[$cat] ?? $cat) ?> · <?= h(fmtDate($r['data_documento'] ?? null)) ?></div>
@@ -335,16 +399,16 @@ $queryBase = http_build_query([
         </div>
 
         <div class="category-grid">
-            <?php foreach($categories as $key => $label): ?>
+            <?php foreach ($categories as $key => $label): ?>
                 <a class="category-tile" href="index.php?categoria=<?= urlencode($key) ?>">
-                    <?php if(!empty($categoryImages[$key])): ?>
-                        <img src="<?= h($categoryImages[$key]) ?>">
+                    <?php if (!empty($categoryImages[$key])): ?>
+                        <img src="<?= h($categoryImages[$key]) ?>" alt="<?= h($label) ?>">
                     <?php else: ?>
                         <div class="empty-img">📂</div>
                     <?php endif; ?>
                     <div>
                         <strong><?= h($label) ?></strong>
-                        <small><?= $categoryCounts[$key] ?? 0 ?> documenti</small>
+                        <small><?= (int)($categoryCounts[$key] ?? 0) ?> documenti</small>
                     </div>
                 </a>
             <?php endforeach; ?>
@@ -371,7 +435,7 @@ $queryBase = http_build_query([
                     <label>Categoria</label>
                     <select name="categoria">
                         <option value="">Tutte le categorie</option>
-                        <?php foreach($categories as $key => $label): ?>
+                        <?php foreach ($categories as $key => $label): ?>
                             <option value="<?= h($key) ?>" <?= $categoria === $key ? 'selected' : '' ?>><?= h($label) ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -387,10 +451,23 @@ $queryBase = http_build_query([
                     <select name="mese">
                         <option value="">Tutti i mesi</option>
                         <?php
-                        $mesi = [1=>'Gennaio',2=>'Febbraio',3=>'Marzo',4=>'Aprile',5=>'Maggio',6=>'Giugno',7=>'Luglio',8=>'Agosto',9=>'Settembre',10=>'Ottobre',11=>'Novembre',12=>'Dicembre'];
-                        foreach($mesi as $num => $nome):
+                        $mesi = [
+                            1 => 'Gennaio',
+                            2 => 'Febbraio',
+                            3 => 'Marzo',
+                            4 => 'Aprile',
+                            5 => 'Maggio',
+                            6 => 'Giugno',
+                            7 => 'Luglio',
+                            8 => 'Agosto',
+                            9 => 'Settembre',
+                            10 => 'Ottobre',
+                            11 => 'Novembre',
+                            12 => 'Dicembre',
+                        ];
+                        foreach ($mesi as $num => $nome):
                         ?>
-                            <option value="<?= $num ?>" <?= (string)$mese === (string)$num ? 'selected' : '' ?>><?= h($nome) ?></option>
+                            <option value="<?= (int)$num ?>" <?= (string)$mese === (string)$num ? 'selected' : '' ?>><?= h($nome) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -430,7 +507,7 @@ $queryBase = http_build_query([
                 <div>
                     <label>Categoria</label>
                     <select name="category" required>
-                        <?php foreach($categories as $key => $label): ?>
+                        <?php foreach ($categories as $key => $label): ?>
                             <option value="<?= h($key) ?>"><?= h($label) ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -480,20 +557,22 @@ $queryBase = http_build_query([
             </div>
         </div>
 
-        <?php if(!$result || $result->num_rows === 0): ?>
+        <?php if (!$result || $result->num_rows === 0): ?>
 
             <p>Nessun documento trovato.</p>
 
-        <?php elseif($view === 'list'): ?>
+        <?php elseif ($view === 'list'): ?>
 
-            <?php while($row = $result->fetch_assoc()): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
                 <?php
-                    $cat = $row['categoria'];
-                    $catName = $categories[$cat] ?? $cat;
-                    $icon = extIcon($row['nome_archivio']);
-                    $title = docTitle($row);
-                    $previewUrl = "view.php?category=" . urlencode($cat) . "&file=" . urlencode($row['nome_archivio']);
-                    $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
+                $cat = safeCategory((string)($row['categoria'] ?? ''));
+                $catName = $categories[$cat] ?? $cat;
+                $icon = extIcon((string)$row['nome_archivio']);
+                $title = docTitle($row);
+                $previewUrl = documentPreviewUrl($row);
+                $downloadUrl = documentDownloadUrl($row);
+                $deleteUrl = documentDeleteUrl($row);
+                $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
                 ?>
                 <div class="file clickable-row" data-open="<?= h($previewUrl) ?>">
                     <div class="doc-list-row">
@@ -506,16 +585,20 @@ $queryBase = http_build_query([
                             <div class="doc-meta">
                                 <span class="doc-pill">📂 <?= h($catName) ?></span>
                                 <span class="doc-pill">📅 <?= h(fmtDate($row['data_documento'] ?? null)) ?></span>
-                                <?php if(!empty($row['tags'])): ?><span class="doc-pill">🏷️ <?= h($row['tags']) ?></span><?php endif; ?>
+                                <?php if (!empty($row['tags'])): ?>
+                                    <span class="doc-pill">🏷️ <?= h($row['tags']) ?></span>
+                                <?php endif; ?>
                             </div>
-                            <?php if(!empty($row['note'])): ?><div class="doc-note"><?= nl2br(h($row['note'])) ?></div><?php endif; ?>
+                            <?php if (!empty($row['note'])): ?>
+                                <div class="doc-note"><?= nl2br(h($row['note'])) ?></div>
+                            <?php endif; ?>
                         </div>
                         <div class="doc-actions">
                             <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ Preferito' : '☆ Preferito') ?></a>
                             <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ Visualizza</a>
-                            <a class="doc-action" href="download.php?category=<?= urlencode($cat) ?>&file=<?= urlencode($row['nome_archivio']) ?>">⬇️ Scarica</a>
+                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
                             <a class="doc-action" href="edit_documento.php?id=<?= (int)$row['id'] ?>">✏️ Modifica</a>
-                            <a class="doc-action danger" href="delete.php?category=<?= urlencode($cat) ?>&file=<?= urlencode($row['nome_archivio']) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
+                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
                         </div>
                     </div>
                 </div>
@@ -524,14 +607,16 @@ $queryBase = http_build_query([
         <?php else: ?>
 
             <div class="grid-cards">
-                <?php while($row = $result->fetch_assoc()): ?>
+                <?php while ($row = $result->fetch_assoc()): ?>
                     <?php
-                        $cat = $row['categoria'];
-                        $catName = $categories[$cat] ?? $cat;
-                        $icon = extIcon($row['nome_archivio']);
-                        $title = docTitle($row);
-                        $previewUrl = "view.php?category=" . urlencode($cat) . "&file=" . urlencode($row['nome_archivio']);
-                        $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
+                    $cat = safeCategory((string)($row['categoria'] ?? ''));
+                    $catName = $categories[$cat] ?? $cat;
+                    $icon = extIcon((string)$row['nome_archivio']);
+                    $title = docTitle($row);
+                    $previewUrl = documentPreviewUrl($row);
+                    $downloadUrl = documentDownloadUrl($row);
+                    $deleteUrl = documentDeleteUrl($row);
+                    $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
                     ?>
                     <div class="doc-card" data-open="<?= h($previewUrl) ?>">
                         <div class="doc-head">
@@ -549,7 +634,7 @@ $queryBase = http_build_query([
                             <span class="doc-pill">📅 <?= h(fmtDate($row['data_documento'] ?? null)) ?></span>
                         </div>
 
-                        <?php if(!empty($row['tags'])): ?>
+                        <?php if (!empty($row['tags'])): ?>
                             <div class="doc-pill">🏷️ <?= h($row['tags']) ?></div>
                         <?php endif; ?>
 
@@ -560,9 +645,9 @@ $queryBase = http_build_query([
                         <div class="doc-actions">
                             <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ Preferito' : '☆ Preferito') ?></a>
                             <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ Visualizza</a>
-                            <a class="doc-action" href="download.php?category=<?= urlencode($cat) ?>&file=<?= urlencode($row['nome_archivio']) ?>">⬇️ Scarica</a>
+                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
                             <a class="doc-action" href="edit_documento.php?id=<?= (int)$row['id'] ?>">✏️ Modifica</a>
-                            <a class="doc-action danger" href="delete.php?category=<?= urlencode($cat) ?>&file=<?= urlencode($row['nome_archivio']) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
+                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
                         </div>
                     </div>
                 <?php endwhile; ?>
