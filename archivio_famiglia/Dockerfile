@@ -9,6 +9,7 @@ RUN apt-get update \
 
 COPY rootfs/ /
 COPY run.sh /run.sh
+COPY config.yaml /etc/archivio_famiglia_config.yaml
 
 RUN chmod a+x /run.sh \
     && chown -R www-data:www-data /var/www/html || true
