@@ -1,18 +1,17 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/core/functions.php';
 
-function h($v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
-
-function tableExists(mysqli $conn, string $table): bool {
+function tableExists(mysqli $conn, string $table): bool
+{
     $table = $conn->real_escape_string($table);
     $res = $conn->query("SHOW TABLES LIKE '{$table}'");
     return $res && $res->num_rows > 0;
 }
 
-function createDemoPdf(string $path): void {
+function createDemoPdf(string $path): void
+{
     $pdf = "%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -21,7 +20,7 @@ endobj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >>
 endobj
 4 0 obj
 << /Length 214 >>
@@ -60,21 +59,70 @@ startxref
     file_put_contents($path, $pdf);
 }
 
-// Controllo installazione robusto
-$installNeeded = false;
+function ensureTables(mysqli $conn): void
+{
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS utenti (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(80) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            ruolo VARCHAR(30) NOT NULL DEFAULT 'user',
+            attivo TINYINT(1) NOT NULL DEFAULT 1,
+            foto VARCHAR(255) NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
 
-if (!tableExists($conn, 'utenti')) {
-    $installNeeded = true;
-} else {
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS categorie (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            slug VARCHAR(100) NOT NULL UNIQUE,
+            nome VARCHAR(150) NOT NULL,
+            immagine VARCHAR(255) NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS documenti (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome_archivio VARCHAR(255) NOT NULL,
+            nome_originale VARCHAR(255) NOT NULL,
+            titolo VARCHAR(255) NULL,
+            categoria VARCHAR(100) NULL,
+            note TEXT NULL,
+            tags VARCHAR(255) NULL,
+            data_documento DATE NULL,
+            preferito TINYINT(1) NOT NULL DEFAULT 0,
+            data_upload DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS share_links (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            token VARCHAR(80) NOT NULL UNIQUE,
+            categoria VARCHAR(100) NOT NULL,
+            nome_archivio VARCHAR(255) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+}
+
+function installNeeded(mysqli $conn): bool
+{
+    if (!tableExists($conn, 'utenti')) {
+        return true;
+    }
+
     $res = $conn->query("SELECT COUNT(*) AS totale FROM utenti");
     $count = $res ? (int)($res->fetch_assoc()['totale'] ?? 0) : 0;
 
-    if ($count === 0) {
-        $installNeeded = true;
-    }
+    return $count === 0;
 }
 
-if (!$installNeeded) {
+if (!installNeeded($conn)) {
     header("Location: login.php");
     exit;
 }
@@ -93,61 +141,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($password !== $password2) {
         $error = 'Le password non coincidono';
     } else {
-
-        $conn->query("
-            CREATE TABLE IF NOT EXISTS utenti (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(80) NOT NULL UNIQUE,
-                password_hash VARCHAR(255) NOT NULL,
-                ruolo VARCHAR(30) NOT NULL DEFAULT 'user',
-                attivo TINYINT(1) NOT NULL DEFAULT 1,
-                foto VARCHAR(255) NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-
-        $conn->query("
-            CREATE TABLE IF NOT EXISTS categorie (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                slug VARCHAR(100) NOT NULL UNIQUE,
-                nome VARCHAR(150) NOT NULL,
-                immagine VARCHAR(255) NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-
-        $conn->query("
-            CREATE TABLE IF NOT EXISTS documenti (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nome_archivio VARCHAR(255) NOT NULL,
-                nome_originale VARCHAR(255) NOT NULL,
-                titolo VARCHAR(255) NULL,
-                categoria VARCHAR(100) NULL,
-                note TEXT NULL,
-                tags VARCHAR(255) NULL,
-                data_documento DATE NULL,
-                preferito TINYINT(1) NOT NULL DEFAULT 0,
-                data_upload DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-
-        $conn->query("
-            CREATE TABLE IF NOT EXISTS share_links (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                token VARCHAR(80) NOT NULL UNIQUE,
-                categoria VARCHAR(100) NOT NULL,
-                nome_archivio VARCHAR(255) NOT NULL,
-                expires_at DATETIME NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
+        ensureTables($conn);
 
         $defaults = [
             'cartelle_cliniche' => 'Cartelle cliniche',
             'referti' => 'Referti',
             'casa' => 'Casa',
             'auto' => 'Auto',
-            'altro' => 'Altro'
+            'altro' => 'Altro',
         ];
 
         foreach ($defaults as $slug => $nome) {
@@ -226,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>🚀 Archivio Famiglia</h1>
         <p>Crea il primo amministratore. Tabelle, categorie demo e PDF dimostrativo verranno creati automaticamente.</p>
 
-        <?php if($error): ?>
+        <?php if ($error): ?>
             <p class="error"><?= h($error) ?></p>
         <?php endif; ?>
 
