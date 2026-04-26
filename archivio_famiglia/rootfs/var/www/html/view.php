@@ -185,8 +185,6 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
             <?php elseif ($ext === 'pdf'): ?>
 
                 <div class="pdf-toolbar">
-                    <button type="button" class="btn btn-secondary" onclick="zoomPdf(-0.15)">➖ Zoom</button>
-                    <button type="button" class="btn btn-secondary" onclick="zoomPdf(0.15)">➕ Zoom</button>
                     <a class="btn btn-secondary" href="<?= h($fileUrl) ?>" target="_blank">↗️ Apri PDF</a>
                     <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
                 </div>
