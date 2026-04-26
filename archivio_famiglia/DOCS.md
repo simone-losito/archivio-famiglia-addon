@@ -4,9 +4,8 @@ Benvenuto 👋
 Questo add-on ti permette di gestire un archivio documentale familiare direttamente dentro Home Assistant.
 
 ---
-## ☕ Supporta il progetto
 
-Se questo progetto ti è utile e vuoi supportarlo:
+## ☕ Supporta il progetto
 
 <p align="center">
   <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
@@ -15,14 +14,13 @@ Se questo progetto ti è utile e vuoi supportarlo:
 </p>
 
 <p align="center">
-Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
+Supportare il progetto significa aiutare lo sviluppo 🚀
 </p>
 
-🔗 Repository ufficiale
-
-Puoi trovare il codice qui:
-
+🔗 Repository ufficiale  
 👉 https://github.com/simone-losito/archivio-famiglia-addon
+
+---
 
 ## 🚀 Primo utilizzo
 
@@ -33,26 +31,26 @@ Ti verrà chiesto di creare:
 - 👤 Nome utente
 - 🔐 Password
 
-Una volta fatto, il sistema creerà automaticamente:
+Il sistema creerà automaticamente:
 
 - Database
+- Tabelle
 - Categorie base
-- Documento di prova
+- Documento PDF demo
 - Account amministratore
 
 ---
 
 ## 🧭 Interfaccia
 
-Dopo il login troverai:
-
 ### 📂 Categorie
-Organizza i tuoi documenti per tipo:
-- Cartelle cliniche
-- Referti
-- Casa
-- Auto
-- Altro
+Organizza i documenti per tipo:
+
+- Cartelle cliniche  
+- Referti  
+- Casa  
+- Auto  
+- Altro  
 
 Puoi modificarle o crearne di nuove.
 
@@ -62,18 +60,22 @@ Puoi modificarle o crearne di nuove.
 
 Puoi:
 
-- Caricare file
+- Caricare file (PDF, immagini, ecc.)
+- 📷 Scattare foto direttamente da smartphone
 - Aggiungere titolo
 - Inserire note
 - Aggiungere tag
-- Segnarli come ⭐ preferiti
-- 📷 Upload da fotocamera smartphone
+- Segnare come ⭐ preferiti
+- Visualizzare anteprima
+- Scaricare file
 
 ---
 
 ### 👥 Utenti
 
-Puoi creare più utenti per la tua famiglia.
+- Creazione utenti familiari
+- Ruoli: admin / user
+- Attivazione / disattivazione utenti
 
 ---
 
@@ -81,33 +83,42 @@ Puoi creare più utenti per la tua famiglia.
 
 Puoi generare link temporanei per condividere documenti.
 
+- accesso solo al singolo file
+- scadenza automatica
+
 ---
 
 ### 💾 Backup
 
-Puoi esportare i dati dal sistema.
+Puoi creare backup di:
+
+- Database
+- Documenti
+
+Il sistema mantiene automaticamente gli ultimi backup.
 
 ---
 
-## 📂 Dove sono salvati i file?
+## 📂 Dove vengono salvati i file
 
-Tutti i documenti vengono salvati in:
+Tutti i documenti sono salvati in:
+
 /share/archivio
 
-👉 Questo significa che:
-- non vengono persi
-- sono accessibili anche da PC (Samba)
-- restano anche dopo aggiornamenti
+
+✔ persistente  
+✔ accessibile via rete (Samba)  
+✔ non viene cancellato reinstallando l’add-on  
 
 ---
 
-## ⚠️ Se qualcosa non funziona
+## ⚠️ Problemi comuni
 
 Controlla:
 
-- configurazione database
-- add-on MariaDB attivo
-- password corretta
+- Add-on **MariaDB attivo**
+- Credenziali corrette
+- Configurazione DB corretta
 
 ---
 
@@ -116,46 +127,50 @@ Controlla:
 Se reinstalli l’add-on:
 
 - ❌ NON perdi i file
-- ❌ NON perdi il database (se non lo cancelli)
+- ❌ NON perdi il database (se non lo cancelli manualmente)
 
 ---
 
-# 🔧 (Sezione tecnica – opzionale)
+# 🔧 Sezione tecnica
 
 ## Database
 
-- Motore: MariaDB
-- Tabelle create automaticamente:
-  - utenti
-  - categorie
-  - documenti
-  - share_links
+Motore: MariaDB
+
+Tabelle:
+
+- utenti
+- categorie
+- documenti
+- share_links
 
 ---
 
 ## Porte
 
-- Interna: 8090
-- Esterna: configurabile
+- Container: `80`
+- Host: `8091` (configurabile)
 
 ---
 
 ## Storage
 
-- `/share/archivio` → file
-- DB → MariaDB
+- `/share/archivio` → documenti
+- `/data/options.json` → configurazione add-on
+- MariaDB → database
 
 ---
 
 ## Architettura
 
-- PHP + Apache
-- Docker Add-on Home Assistant
-- Volume persistente `/share`
+- PHP 8.2
+- Apache
+- Docker
+- Home Assistant Add-on
 
 ---
 
-## 🧠 Note
+## 🧠 Note importanti
 
 Il wizard iniziale parte SOLO se:
 
@@ -164,28 +179,7 @@ Il wizard iniziale parte SOLO se:
 
 ---
 
-## ☕ Supporta il progetto
-
-Se ti è utile:
-
-👉 offri un caffè  
-👉 condividilo  
-
----
-## ☕ Supporta il progetto
-
-Se questo progetto ti è utile e vuoi supportarlo:
-
-<p align="center">
-  <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
-    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
-  </a>
-</p>
-
-<p align="center">
-Supportare il progetto significa aiutare lo sviluppo di nuove funzionalità 🚀
-</p>
-
 ## 👨‍💻 Autore
 
-Simone Losito
+**Simone Losito**  
+SimoncinoProjects
