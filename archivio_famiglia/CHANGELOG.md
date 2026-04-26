@@ -4,7 +4,16 @@ Tutte le modifiche importanti di Archivio Famiglia.
 
 ---
 
-## [1.0.9] - 2026-04-25
+## [1.1.0] - 2026-04-25
+
+### Aggiunto
+- Upload da fotocamera smartphone.
+- Campo separato per caricare file/PDF o scattare foto documento.
+
+### Migliorato
+- Form di caricamento documento più chiaro su mobile.
+-
+- ## [1.0.9] - 2026-04-25
 
 ### Aggiunto
 - Pagina **Info** interna all’app.
