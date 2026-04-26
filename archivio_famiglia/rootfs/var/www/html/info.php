@@ -1,62 +1,60 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/core/functions.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+requireLogin();
 
-function h($v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
-
-function getAddonVersion(): string {
+function getAddonVersion(): string
+{
     $file = '/etc/archivio_famiglia_config.yaml';
 
-    if (!is_file($file)) {
-        return 'unknown';
+    if (!is_file($file) || !is_readable($file)) {
+        return APP_VERSION;
     }
 
     $content = file_get_contents($file);
 
-    if (preg_match('/^version:\s*[\"\']?([^\"\']+)[\"\']?/m', $content, $m)) {
+    if (preg_match('/^version:\s*[\"\']?([^\"\']+)[\"\']?/m', (string)$content, $m)) {
         return trim($m[1]);
     }
 
-    return 'unknown';
+    return APP_VERSION;
 }
 
-function folderSize($dir): int {
+function folderSize(string $dir): int
+{
     $size = 0;
-    if (!is_dir($dir)) return 0;
 
-    foreach (new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
-    ) as $file) {
-        $size += $file->getSize();
+    if (!is_dir($dir)) {
+        return 0;
+    }
+
+    try {
+        foreach (new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+        ) as $file) {
+            if ($file->isFile()) {
+                $size += $file->getSize();
+            }
+        }
+    } catch (Throwable $e) {
+        return 0;
     }
 
     return $size;
 }
 
-function formatSize($bytes): string {
-    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
-    if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
-    if ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
-    return $bytes . ' B';
-}
-
 $addonVersion = getAddonVersion();
 
 $resDoc = $conn->query("SELECT COUNT(*) AS tot FROM documenti");
-$totDocumenti = $resDoc ? (int)$resDoc->fetch_assoc()['tot'] : 0;
+$totDocumenti = $resDoc ? (int)($resDoc->fetch_assoc()['tot'] ?? 0) : 0;
 
 $resUser = $conn->query("SELECT COUNT(*) AS tot FROM utenti");
-$totUtenti = $resUser ? (int)$resUser->fetch_assoc()['tot'] : 0;
+$totUtenti = $resUser ? (int)($resUser->fetch_assoc()['tot'] ?? 0) : 0;
 
-$uploadDir = is_dir('/share/archivio') ? '/share/archivio' : (__DIR__ . '/uploads');
-$spazio = formatSize(folderSize($uploadDir));
+$uploadDir = is_dir('/share/archivio') ? '/share/archivio' : UPLOAD_DIR;
+$spazio = formatBytes(folderSize($uploadDir));
 
 $localLogo = __DIR__ . '/assets/logo.png';
 $logoSrc = is_file($localLogo)
@@ -66,7 +64,6 @@ $logoSrc = is_file($localLogo)
 $repoUrl = 'https://github.com/simone-losito/archivio-famiglia-addon';
 $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
 ?>
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -78,9 +75,9 @@ $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
 .wrap{
     max-width:900px;
     margin:40px auto;
+    padding:0 18px;
 }
 
-/* 🔥 PILLA HOME */
 .top-pill-bar{
     display:flex;
     justify-content:flex-start;
@@ -159,6 +156,25 @@ $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
     color:var(--muted);
     margin-top:6px;
 }
+
+.link-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 18px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:rgba(34,211,238,.10);
+    color:var(--text);
+    text-decoration:none;
+    font-weight:700;
+}
+
+.link-pill:hover{
+    text-decoration:none;
+    border-color:rgba(34,211,238,.45);
+}
 </style>
 </head>
 
@@ -166,7 +182,6 @@ $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
 
 <div class="wrap">
 
-    <!-- 🔥 PILLA -->
     <div class="top-pill-bar">
         <a href="index.php" class="pill-home">🏠 Torna alla home</a>
     </div>
@@ -210,14 +225,14 @@ $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
 
     <div class="info-box center">
         <h2>🔗 Repository</h2>
-        <a href="<?= h($repoUrl) ?>" target="_blank">
+        <a class="link-pill" href="<?= h($repoUrl) ?>" target="_blank" rel="noopener">
             Vai al progetto su GitHub
         </a>
     </div>
 
     <div class="info-box center">
         <h2>📜 Changelog</h2>
-        <a href="<?= h($changelogUrl) ?>" target="_blank">
+        <a class="link-pill" href="<?= h($changelogUrl) ?>" target="_blank" rel="noopener">
             Vedi storico versioni
         </a>
     </div>
@@ -226,18 +241,19 @@ $changelogUrl = $repoUrl . '/blob/main/CHANGELOG.md';
         <h2>☕ Supporta il progetto</h2>
         <p>Se ti è utile puoi offrire un caffè allo sviluppo.</p>
         <p>
-            <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
-                <img src="https://img.shields.io/badge/Supporta%20il%20progetto-PayPal-blue?style=for-the-badge&logo=paypal">
+            <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank" rel="noopener">
+                <img src="https://img.shields.io/badge/Supporta%20il%20progetto-PayPal-blue?style=for-the-badge&logo=paypal" alt="Supporta il progetto con PayPal">
             </a>
         </p>
     </div>
 
     <div class="info-box">
         <h2>⚙️ Info tecniche</h2>
-        <p>PHP 8 + Apache</p>
-        <p>Database: MariaDB</p>
-        <p>Storage: /share/archivio</p>
-        <p>Addon Home Assistant</p>
+        <p>PHP 8.2 + Apache</p>
+        <p>Database: MariaDB add-on Home Assistant</p>
+        <p>Storage documenti: /share/archivio</p>
+        <p>Upload persistente tramite symlink /var/www/html/uploads</p>
+        <p>Add-on Home Assistant su porta 8091</p>
     </div>
 
 </div>
