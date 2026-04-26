@@ -6,24 +6,59 @@ require_once __DIR__ . '/core/functions.php';
 requireAdmin();
 
 $msg = '';
-$view = $_GET['view'] ?? 'card';
-if (!in_array($view, ['card', 'list'], true)) $view = 'card';
 
-$imgDir = __DIR__ . '/uploads/categorie';
-if (!is_dir($imgDir)) mkdir($imgDir, 0775, true);
+$view = $_GET['view'] ?? 'card';
+if (!in_array($view, ['card', 'list'], true)) {
+    $view = 'card';
+}
+
+$imgDir = UPLOAD_DIR . '/categorie';
+if (!is_dir($imgDir)) {
+    mkdir($imgDir, 0775, true);
+}
 
 function saveCategoryImage(string $slug, string $field): ?string
 {
     global $imgDir;
-    if (empty($_FILES[$field]['name'])) return null;
 
-    $ext = strtolower(pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) return null;
+    if (
+        empty($_FILES[$field]) ||
+        ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE
+    ) {
+        return null;
+    }
 
-    $file = $slug . '_' . time() . '.' . $ext;
+    if (($_FILES[$field]['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $originalName = safeFilename((string)($_FILES[$field]['name'] ?? ''));
+    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+        return null;
+    }
+
+    $tmp = (string)($_FILES[$field]['tmp_name'] ?? '');
+    if (!is_uploaded_file($tmp)) {
+        return null;
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = $finfo ? finfo_file($finfo, $tmp) : '';
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    if (!is_string($mime) || !str_starts_with($mime, 'image/')) {
+        return null;
+    }
+
+    $file = slugify($slug) . '_' . time() . '.' . $ext;
     $dest = $imgDir . '/' . $file;
 
-    if (move_uploaded_file($_FILES[$field]['tmp_name'], $dest)) {
+    if (move_uploaded_file($tmp, $dest)) {
+        chmod($dest, 0664);
         return 'uploads/categorie/' . $file;
     }
 
@@ -31,7 +66,7 @@ function saveCategoryImage(string $slug, string $field): ?string
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
-    $nome = trim($_POST['nome'] ?? '');
+    $nome = trim((string)($_POST['nome'] ?? ''));
     $slug = slugify($nome);
 
     if ($nome !== '' && $slug !== '') {
@@ -42,17 +77,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
 
         if ($stmt->execute()) {
             $dir = UPLOAD_DIR . '/' . $slug;
-            if (!is_dir($dir)) mkdir($dir, 0775, true);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+
             $msg = "Categoria creata correttamente";
         } else {
             $msg = "Categoria già esistente";
         }
+    } else {
+        $msg = "Nome categoria non valido";
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
-    $slug = trim($_POST['slug'] ?? '');
-    $nome = trim($_POST['nome'] ?? '');
+    $slug = safeCategory((string)($_POST['slug'] ?? ''));
+    $nome = trim((string)($_POST['nome'] ?? ''));
 
     if ($slug !== '' && $nome !== '') {
         $newImage = saveCategoryImage($slug, 'immagine');
@@ -67,11 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
 
         $stmt->execute();
         $msg = "Categoria aggiornata";
+    } else {
+        $msg = "Dati categoria non validi";
     }
 }
 
 if (isset($_GET['delete'])) {
-    $slug = trim($_GET['delete']);
+    $slug = safeCategory((string)$_GET['delete']);
 
     if ($slug === 'altro') {
         $msg = "La categoria Altro non può essere eliminata";
@@ -87,6 +129,7 @@ if (isset($_GET['delete'])) {
             $stmt = $conn->prepare("DELETE FROM categorie WHERE slug = ?");
             $stmt->bind_param("s", $slug);
             $stmt->execute();
+
             $msg = "Categoria eliminata";
         }
     }
@@ -108,10 +151,11 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
     <div class="menu">
         <a href="index.php">🏠 Home</a>
         <a href="categorie.php" class="active">⚙️ Categorie</a>
-        <?php if(isAdmin()): ?>
+        <?php if (isAdmin()): ?>
             <a href="utenti.php">👥 Utenti</a>
             <a href="backup.php">💾 Backup</a>
         <?php endif; ?>
+        <a href="info.php">ℹ️ Info</a>
         <a href="logout.php">🚪 Logout</a>
     </div>
 </div>
@@ -130,8 +174,8 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
             </div>
         </div>
 
-        <?php if($msg): ?>
-            <p class="success"><?= htmlspecialchars($msg) ?></p>
+        <?php if ($msg): ?>
+            <p class="success"><?= h($msg) ?></p>
         <?php endif; ?>
     </div>
 
@@ -164,33 +208,33 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
             </div>
         </div>
 
-        <?php if(!$res || $res->num_rows === 0): ?>
+        <?php if (!$res || $res->num_rows === 0): ?>
             <p>Nessuna categoria presente</p>
 
-        <?php elseif($view === 'list'): ?>
+        <?php elseif ($view === 'list'): ?>
 
-            <?php while($c = $res->fetch_assoc()): ?>
+            <?php while ($c = $res->fetch_assoc()): ?>
                 <div class="file">
                     <div class="file-row">
                         <div>
-                            <?php if(!empty($c['immagine'])): ?>
-                                <img class="thumb" src="<?= htmlspecialchars($c['immagine']) ?>">
+                            <?php if (!empty($c['immagine'])): ?>
+                                <img class="thumb" src="<?= h($c['immagine']) ?>" alt="<?= h($c['nome']) ?>">
                             <?php else: ?>
                                 <div class="thumb-placeholder">—</div>
                             <?php endif; ?>
                         </div>
 
                         <div>
-                            <strong><?= htmlspecialchars($c['nome']) ?></strong>
+                            <strong><?= h($c['nome']) ?></strong>
                             <br>
-                            <small><?= htmlspecialchars($c['slug']) ?></small>
+                            <small><?= h($c['slug']) ?></small>
 
                             <form class="inline-form" method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="edit_category" value="1">
-                                <input type="hidden" name="slug" value="<?= htmlspecialchars($c['slug']) ?>">
+                                <input type="hidden" name="slug" value="<?= h($c['slug']) ?>">
 
                                 <label>Nome categoria</label>
-                                <input type="text" name="nome" value="<?= htmlspecialchars($c['nome']) ?>" required>
+                                <input type="text" name="nome" value="<?= h($c['nome']) ?>" required>
 
                                 <label>Immagine categoria</label>
                                 <small>Scegli una nuova immagine solo se vuoi sostituire quella attuale.</small>
@@ -201,7 +245,7 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
                         </div>
 
                         <div class="actions">
-                            <?php if($c['slug'] !== 'altro'): ?>
+                            <?php if ($c['slug'] !== 'altro'): ?>
                                 <a class="btn btn-danger" href="categorie.php?delete=<?= urlencode($c['slug']) ?>&view=list" onclick="return confirm('Eliminare questa categoria?')">🗑️ Elimina</a>
                             <?php else: ?>
                                 <span class="badge">Categoria protetta</span>
@@ -214,25 +258,25 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
         <?php else: ?>
 
             <div class="grid-cards">
-                <?php while($c = $res->fetch_assoc()): ?>
+                <?php while ($c = $res->fetch_assoc()): ?>
                     <div class="item-card">
-                        <?php if(!empty($c['immagine'])): ?>
-                            <img class="preview" src="<?= htmlspecialchars($c['immagine']) ?>">
+                        <?php if (!empty($c['immagine'])): ?>
+                            <img class="preview" src="<?= h($c['immagine']) ?>" alt="<?= h($c['nome']) ?>">
                         <?php else: ?>
                             <div class="no-img">Nessuna immagine</div>
                         <?php endif; ?>
 
                         <div>
-                            <h3><?= htmlspecialchars($c['nome']) ?></h3>
-                            <small><?= htmlspecialchars($c['slug']) ?></small>
+                            <h3><?= h($c['nome']) ?></h3>
+                            <small><?= h($c['slug']) ?></small>
                         </div>
 
                         <form method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="edit_category" value="1">
-                            <input type="hidden" name="slug" value="<?= htmlspecialchars($c['slug']) ?>">
+                            <input type="hidden" name="slug" value="<?= h($c['slug']) ?>">
 
                             <label>Nome categoria</label>
-                            <input type="text" name="nome" value="<?= htmlspecialchars($c['nome']) ?>" required>
+                            <input type="text" name="nome" value="<?= h($c['nome']) ?>" required>
 
                             <label>Immagine categoria</label>
                             <small>Scegli file solo se vuoi cambiare immagine.</small>
@@ -242,7 +286,7 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
                         </form>
 
                         <div class="actions">
-                            <?php if($c['slug'] !== 'altro'): ?>
+                            <?php if ($c['slug'] !== 'altro'): ?>
                                 <a class="btn btn-danger" href="categorie.php?delete=<?= urlencode($c['slug']) ?>&view=card" onclick="return confirm('Eliminare questa categoria?')">🗑️ Elimina</a>
                             <?php else: ?>
                                 <span class="badge">Categoria protetta</span>
