@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+$pdfUrl = "uploads/" . rawurlencode($category) . "/" . rawurlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -56,7 +57,9 @@ $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     padding:16px;
     min-height:500px;
 }
-.preview-box iframe{
+.preview-box iframe,
+.preview-box object,
+.preview-box embed{
     width:100%;
     height:80vh;
     border:0;
@@ -157,7 +160,17 @@ $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
             <?php elseif ($ext === 'pdf'): ?>
 
-                <iframe src="uploads/<?= h($category) ?>/<?= h($file) ?>"></iframe>
+                <object data="<?= h($pdfUrl) ?>" type="application/pdf">
+                    <embed src="<?= h($pdfUrl) ?>" type="application/pdf">
+                        <div style="text-align:center;padding:80px 20px;">
+                            <h2>📄 Anteprima PDF non disponibile</h2>
+                            <p>Il browser non riesce a mostrare il PDF dentro la pagina.</p>
+                            <br>
+                            <a class="btn" href="<?= h($pdfUrl) ?>" target="_blank">👁️ Apri PDF</a>
+                            <a class="btn btn-secondary" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica PDF</a>
+                        </div>
+                    </embed>
+                </object>
 
             <?php else: ?>
 
