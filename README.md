@@ -75,6 +75,7 @@ Gestisci documenti, categorie, utenti e link temporanei direttamente da browser,
 * 💾 Backup locale
 * 🎨 UI dark moderna
 * ⚡ Integrato in Home Assistant
+* 📷 Upload da fotocamera smartphone
 
 ---
 
