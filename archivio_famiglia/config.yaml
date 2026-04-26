@@ -1,8 +1,10 @@
 name: "Archivio Famiglia"
-version: "1.0.8"
+version: "1.0.9"
 slug: "archivio_famiglia"
 description: "Archivio documentale familiare con preview, categorie, utenti e link temporanei"
 url: "https://github.com/simone-losito/archivio-famiglia-addon"
+icon: "icon.png"
+logo: "logo.png"
 arch:
   - aarch64
   - amd64
