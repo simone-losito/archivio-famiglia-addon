@@ -530,3 +530,237 @@ button:hover,
         height:170px;
     }
 }
+
+/* =========================
+   MOBILE UX - Archivio Famiglia
+   ========================= */
+
+@media(max-width:700px){
+
+    body{
+        display:block;
+        min-height:100vh;
+        overflow-x:hidden;
+    }
+
+    .sidebar{
+        width:100%;
+        min-height:auto;
+        padding:14px;
+        position:relative;
+        border-right:0;
+        border-bottom:1px solid var(--line);
+    }
+
+    .logo{
+        font-size:20px;
+        margin-bottom:12px;
+    }
+
+    .menu{
+        display:flex;
+        gap:8px;
+        overflow-x:auto;
+        padding-bottom:4px;
+        scrollbar-width:none;
+    }
+
+    .menu::-webkit-scrollbar{
+        display:none;
+    }
+
+    .menu a{
+        flex:0 0 auto;
+        padding:10px 13px;
+        margin:0;
+        border-radius:999px;
+        font-size:14px;
+        white-space:nowrap;
+        background:rgba(148,163,184,.08);
+        border:1px solid var(--line);
+    }
+
+    .main{
+        padding:12px;
+    }
+
+    .card{
+        padding:16px;
+        border-radius:20px;
+        margin-bottom:16px;
+    }
+
+    .topbar{
+        display:block;
+    }
+
+    h1{
+        font-size:26px;
+        line-height:1.15;
+    }
+
+    h2{
+        font-size:20px;
+    }
+
+    h3{
+        font-size:17px;
+    }
+
+    p,
+    small{
+        font-size:14px;
+    }
+
+    input,
+    select,
+    textarea{
+        font-size:16px;
+        padding:13px 14px;
+        border-radius:14px;
+    }
+
+    button,
+    .btn{
+        width:100%;
+        min-height:44px;
+        padding:12px 14px;
+        font-size:15px;
+    }
+
+    .toolbar{
+        width:100%;
+        margin-top:12px;
+        gap:8px;
+    }
+
+    .toolbar .btn,
+    .toolbar button{
+        flex:1 1 100%;
+    }
+
+    .badge{
+        font-size:13px;
+        padding:7px 10px;
+    }
+
+    .dashboard-grid,
+    .mini-grid,
+    .category-grid,
+    .grid-cards{
+        grid-template-columns:1fr !important;
+        gap:12px;
+    }
+
+    .stat-card{
+        min-height:auto;
+        padding:15px;
+    }
+
+    .stat-card strong{
+        font-size:26px;
+    }
+
+    .mini-doc{
+        min-height:auto;
+        padding:13px;
+        border-radius:18px;
+    }
+
+    .mini-icon{
+        width:40px;
+        height:40px;
+        font-size:20px;
+    }
+
+    .category-tile{
+        min-height:auto !important;
+        border-radius:22px;
+        padding:14px;
+    }
+
+    .category-tile img,
+    .category-tile .empty-img{
+        height:145px !important;
+        border-radius:18px;
+    }
+
+    .category-tile strong{
+        font-size:19px;
+    }
+
+    .item-card,
+    .doc-card,
+    .file{
+        border-radius:20px;
+        padding:14px;
+        min-height:auto;
+    }
+
+    .file-row{
+        grid-template-columns:1fr !important;
+        gap:12px;
+    }
+
+    .thumb,
+    .thumb-placeholder{
+        width:64px;
+        height:64px;
+    }
+
+    .actions{
+        width:100%;
+    }
+
+    .actions .btn,
+    .actions a,
+    .actions button{
+        width:100%;
+        justify-content:center;
+    }
+
+    .preview-box{
+        padding:10px;
+        border-radius:18px;
+    }
+
+    .preview-box img{
+        max-height:none;
+        width:100%;
+    }
+
+    .pdf-toolbar{
+        gap:8px;
+    }
+
+    .pdf-toolbar .btn{
+        width:100%;
+    }
+
+    .pdf-page{
+        max-width:100%;
+        border-radius:10px;
+    }
+
+    .pdf-loading{
+        padding:40px 12px;
+    }
+
+    .theme-toggle{
+        right:12px;
+        bottom:12px;
+        width:auto;
+        min-height:42px;
+        padding:10px 14px;
+        font-size:14px;
+    }
+
+    .share-box{
+        padding:14px;
+        border-radius:18px;
+    }
+
+    .share-url{
+        font-size:13px;
+    }
+}
