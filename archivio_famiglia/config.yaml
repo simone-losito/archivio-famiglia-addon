@@ -1,28 +1,37 @@
 name: "Archivio Famiglia"
-version: "1.1.0"
+version: "1.1.1"
 slug: "archivio_famiglia"
-description: "Archivio documentale familiare con preview, categorie, utenti e link temporanei"
+description: "Archivio documentale familiare con upload da smartphone, preview, categorie, utenti e link temporanei"
 url: "https://github.com/simone-losito/archivio-famiglia-addon"
+
 icon: "icon.png"
 logo: "logo.png"
+
 arch:
   - aarch64
   - amd64
   - armv7
   - i386
+
 startup: services
 boot: auto
 init: false
+
 webui: "http://[HOST]:[PORT:80]"
+
 panel_icon: "mdi:folder"
 panel_title: "Archivio"
+
 ports:
   80/tcp: 8091
+
 ports_description:
   80/tcp: "Interfaccia web Archivio Famiglia"
+
 map:
   - type: share
     read_only: false
+
 options:
   db_host: "core-mariadb"
   db_name: "homeassistant"
@@ -30,6 +39,7 @@ options:
   db_pass: "CHANGE_ME"
   telemetry_enabled: false
   telemetry_endpoint: ""
+
 schema:
   db_host: str
   db_name: str
@@ -37,3 +47,7 @@ schema:
   db_pass: str
   telemetry_enabled: bool
   telemetry_endpoint: str?
+
+# Opzioni visive nel pannello HA
+ingress: false
+ingress_port: 80
