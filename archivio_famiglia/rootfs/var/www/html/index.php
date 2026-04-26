@@ -1,4 +1,4 @@
-<?php
+<?php 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/functions.php';
@@ -158,6 +158,30 @@ $queryBase = http_build_query([
 .stat-card strong{font-size:30px;display:block;margin-top:8px}
 .upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 
+.upload-choice-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+    margin-top:10px;
+}
+.upload-choice{
+    border:1px solid var(--line);
+    background:rgba(2,6,23,.30);
+    border-radius:20px;
+    padding:16px;
+}
+.upload-choice strong{
+    display:block;
+    margin-bottom:6px;
+    font-size:16px;
+}
+.upload-choice small{
+    display:block;
+    color:var(--muted);
+    margin-bottom:12px;
+    line-height:1.35;
+}
+
 .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}
 .category-tile{background:linear-gradient(145deg,rgba(2,6,23,.58),rgba(15,23,42,.88));border:1px solid var(--line);border-radius:30px;padding:18px;min-height:285px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 35px rgba(0,0,0,.16)}
 .category-tile:hover{border-color:rgba(34,211,238,.6);text-decoration:none;transform:translateY(-1px)}
@@ -196,6 +220,7 @@ $queryBase = http_build_query([
 
 @media(max-width:1000px){
     .upload-grid{grid-template-columns:1fr}
+    .upload-choice-grid{grid-template-columns:1fr}
     .doc-list-row{grid-template-columns:1fr}
     .category-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
     .category-tile{min-height:230px}
@@ -393,6 +418,8 @@ $queryBase = http_build_query([
 
     <div class="card">
         <h2>Carica nuovo documento</h2>
+        <p>Puoi caricare un file già presente oppure, da smartphone, scattare direttamente una foto del documento.</p>
+
         <form method="POST" action="upload.php" enctype="multipart/form-data">
             <div class="upload-grid">
                 <div>
@@ -418,10 +445,19 @@ $queryBase = http_build_query([
                     <label>Tag</label>
                     <input type="text" name="tags" placeholder="Es. cardiologia, bolletta, banca...">
                 </div>
+            </div>
 
-                <div>
-                    <label>File documento</label>
-                    <input type="file" name="file" required>
+            <div class="upload-choice-grid">
+                <div class="upload-choice">
+                    <strong>📎 Carica file / PDF</strong>
+                    <small>Usa questa opzione per PDF, immagini, documenti Word, Excel o altri file già presenti.</small>
+                    <input type="file" name="file">
+                </div>
+
+                <div class="upload-choice">
+                    <strong>📷 Scatta foto documento</strong>
+                    <small>Da smartphone apre la fotocamera o la galleria. La foto verrà salvata come documento immagine.</small>
+                    <input type="file" name="file_foto" accept="image/*" capture="environment">
                 </div>
             </div>
 
