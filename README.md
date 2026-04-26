@@ -154,10 +154,12 @@ Permette di caricare, cercare, visualizzare, scaricare, modificare e condividere
 2. Clicca sui **tre puntini** in alto a destra
 3. Apri **Repository**
 4. Inserisci questo URL:
-5.Installa Archivio Famiglia
-6.Configura i dati MariaDB
-7.Avvia l’add-on
-8.Apri la Web UI
+   ```text
+https://github.com/simone-losito/archivio-famiglia-addon
+5. Installa Archivio Famiglia
+6. Configura i dati MariaDB
+7. Avvia l’add-on
+8. Apri la Web UI
 
 ---
 
@@ -193,8 +195,8 @@ Il wizard parte solo se non esiste nessun utente.
 
 Da smartphone puoi usare:
 
--caricamento file/PDF normale
--pulsante Scatta foto documento
+- caricamento file/PDF normale
+- pulsante Scatta foto documento
 
 La foto viene salvata come documento immagine dentro l’archivio.
 
@@ -291,5 +293,4 @@ Lascia una ⭐ su GitHub e condividi il progetto.
 MIT License
 
 
-```text
-https://github.com/simone-losito/archivio-famiglia-addon
+
