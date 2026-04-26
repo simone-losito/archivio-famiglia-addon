@@ -5,11 +5,13 @@ require_once __DIR__ . '/core/functions.php';
 
 requireLogin();
 
-$category = safeCategory($_GET['category'] ?? '');
-$file = basename($_GET['file'] ?? '');
+$category = safeCategory((string)($_GET['category'] ?? ''));
+$file = safeFilename((string)($_GET['file'] ?? ''));
+
 $path = UPLOAD_DIR . '/' . $category . '/' . $file;
 
 if (!is_file($path)) {
+    http_response_code(404);
     exit('File non trovato');
 }
 
@@ -18,6 +20,7 @@ $publicUrl = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])) {
     $days = (int)($_POST['days'] ?? 1);
+
     if (!in_array($days, [1, 7, 30], true)) {
         $days = 1;
     }
@@ -33,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
     $stmt->execute();
 
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'];
-    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $base = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
 
     $publicUrl = $scheme . '://' . $host . $base . '/public.php?t=' . urlencode($token);
     $msg = "Link pubblico creato. Scade tra $days giorno/i.";
@@ -42,9 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
-function h($v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
+$fileUrl = 'uploads/' . rawurlencode($category) . '/' . rawurlencode($file);
+$downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -94,10 +96,11 @@ function h($v): string {
     <div class="menu">
         <a href="index.php">🏠 Home</a>
         <a href="categorie.php">⚙️ Categorie</a>
-        <?php if(isAdmin()): ?>
+        <?php if (isAdmin()): ?>
             <a href="utenti.php">👥 Utenti</a>
             <a href="backup.php">💾 Backup</a>
         <?php endif; ?>
+        <a href="info.php">ℹ️ Info</a>
         <a href="logout.php">🚪 Logout</a>
     </div>
 </div>
@@ -113,13 +116,13 @@ function h($v): string {
             </div>
 
             <div class="toolbar">
-                <a class="btn btn-secondary" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica</a>
+                <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
                 <a class="btn btn-secondary" href="index.php?categoria=<?= urlencode($category) ?>">📂 Categoria</a>
                 <a class="btn btn-secondary" href="index.php">← Home</a>
             </div>
         </div>
 
-        <?php if($msg): ?>
+        <?php if ($msg): ?>
             <p class="success"><?= h($msg) ?></p>
         <?php endif; ?>
 
@@ -140,7 +143,7 @@ function h($v): string {
                 <button>🔗 Crea link pubblico</button>
             </form>
 
-            <?php if($publicUrl): ?>
+            <?php if ($publicUrl): ?>
                 <input class="share-url" id="publicUrl" value="<?= h($publicUrl) ?>" readonly>
 
                 <div class="toolbar">
@@ -154,13 +157,13 @@ function h($v): string {
 
     <div class="card">
         <div class="preview-box">
-            <?php if (in_array($ext, ['jpg','jpeg','png','gif','webp'], true)): ?>
+            <?php if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)): ?>
 
-                <img src="uploads/<?= h($category) ?>/<?= h($file) ?>">
+                <img src="<?= h($fileUrl) ?>" alt="<?= h($file) ?>">
 
             <?php elseif ($ext === 'pdf'): ?>
 
-                <iframe src="uploads/<?= h($category) ?>/<?= h($file) ?>"></iframe>
+                <iframe src="<?= h($fileUrl) ?>"></iframe>
 
             <?php else: ?>
 
@@ -168,7 +171,7 @@ function h($v): string {
                     <h2>Anteprima non disponibile</h2>
                     <p>Questo tipo di file può essere scaricato ma non visualizzato direttamente.</p>
                     <br>
-                    <a class="btn" href="download.php?category=<?= urlencode($category) ?>&file=<?= urlencode($file) ?>">⬇️ Scarica file</a>
+                    <a class="btn" href="<?= h($downloadUrl) ?>">⬇️ Scarica file</a>
                 </div>
 
             <?php endif; ?>
