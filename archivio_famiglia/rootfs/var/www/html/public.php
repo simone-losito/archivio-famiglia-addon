@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/core/functions.php';
 
-$token = trim($_GET['t'] ?? '');
+$token = trim((string)($_GET['t'] ?? ''));
 
-if ($token === '') {
+if ($token === '' || !preg_match('/^[a-f0-9]{48}$/', $token)) {
+    http_response_code(400);
     exit('Link non valido');
 }
 
@@ -14,27 +16,32 @@ $stmt->execute();
 $link = $stmt->get_result()->fetch_assoc();
 
 if (!$link) {
+    http_response_code(404);
     exit('Link scaduto o non valido');
 }
 
-$category = basename($link['categoria']);
-$file = basename($link['nome_archivio']);
+$category = safeCategory((string)$link['categoria']);
+$file = safeFilename((string)$link['nome_archivio']);
+
 $path = UPLOAD_DIR . '/' . $category . '/' . $file;
 
 if (!is_file($path)) {
+    http_response_code(404);
     exit('File non trovato');
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
 $types = [
     'pdf'  => 'application/pdf',
     'jpg'  => 'image/jpeg',
     'jpeg' => 'image/jpeg',
     'png'  => 'image/png',
     'gif'  => 'image/gif',
-    'webp' => 'image/webp'
+    'webp' => 'image/webp',
 ];
 
+header('X-Content-Type-Options: nosniff');
 header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
 header('Content-Disposition: inline; filename="' . basename($file) . '"');
 header('Content-Length: ' . filesize($path));
