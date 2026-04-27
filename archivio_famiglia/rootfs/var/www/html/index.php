@@ -5,7 +5,7 @@ require_once __DIR__ . '/core/functions.php';
 
 $checkInstall = $conn->query("SHOW TABLES LIKE 'utenti'");
 if (!$checkInstall || $checkInstall->num_rows === 0) {
-    header("Location: install.php");
+    header("Location: " . urlWithLang('install.php'));
     exit;
 }
 
@@ -124,11 +124,11 @@ if (!function_exists('fmtDate')) {
     function fmtDate(?string $date): string
     {
         if (!$date) {
-            return 'Senza data';
+            return t('without_date');
         }
 
         $ts = strtotime($date);
-        return $ts ? date('d/m/Y', $ts) : 'Senza data';
+        return $ts ? date('d/m/Y', $ts) : t('without_date');
     }
 }
 
@@ -156,7 +156,7 @@ if (!function_exists('docTitle')) {
             return $titolo;
         }
 
-        return trim((string)($row['nome_originale'] ?? 'Documento')) ?: 'Documento';
+        return trim((string)($row['nome_originale'] ?? t('document'))) ?: t('document');
     }
 }
 
@@ -186,7 +186,7 @@ function documentPreviewUrl(array $row): string
     $cat = safeCategory((string)($row['categoria'] ?? ''));
     $file = safeFilename((string)($row['nome_archivio'] ?? ''));
 
-    return "view.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+    return urlWithLang("view.php?category=" . urlencode($cat) . "&file=" . urlencode($file));
 }
 
 function documentDownloadUrl(array $row): string
@@ -194,7 +194,7 @@ function documentDownloadUrl(array $row): string
     $cat = safeCategory((string)($row['categoria'] ?? ''));
     $file = safeFilename((string)($row['nome_archivio'] ?? ''));
 
-    return "download.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+    return urlWithLang("download.php?category=" . urlencode($cat) . "&file=" . urlencode($file));
 }
 
 function documentDeleteUrl(array $row): string
@@ -202,14 +202,38 @@ function documentDeleteUrl(array $row): string
     $cat = safeCategory((string)($row['categoria'] ?? ''));
     $file = safeFilename((string)($row['nome_archivio'] ?? ''));
 
-    return "delete.php?category=" . urlencode($cat) . "&file=" . urlencode($file);
+    return urlWithLang("delete.php?category=" . urlencode($cat) . "&file=" . urlencode($file));
 }
+
+$lang = currentLanguage();
+
+$currentUrl = $_SERVER['PHP_SELF'] ?? 'index.php';
+$currentQuery = $_GET;
+$currentQuery['lang'] = 'it';
+$langItUrl = $currentUrl . '?' . http_build_query($currentQuery);
+$currentQuery['lang'] = 'en';
+$langEnUrl = $currentUrl . '?' . http_build_query($currentQuery);
+
+$mesi = [
+    1 => t('month_january'),
+    2 => t('month_february'),
+    3 => t('month_march'),
+    4 => t('month_april'),
+    5 => t('month_may'),
+    6 => t('month_june'),
+    7 => t('month_july'),
+    8 => t('month_august'),
+    9 => t('month_september'),
+    10 => t('month_october'),
+    11 => t('month_november'),
+    12 => t('month_december'),
+];
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Archivio Famiglia</title>
+<title><?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
 .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:24px}
@@ -276,6 +300,9 @@ function documentDeleteUrl(array $row): string
 .original-name{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-word}
 .open-hint{font-size:12px;color:var(--cyan);margin-top:2px}
 .quick-filter{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.language-switch{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.language-switch a{font-size:13px;text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.language-switch a.active{color:var(--text);background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.45)}
 
 @media(max-width:1000px){
     .upload-grid{grid-template-columns:1fr}
@@ -290,16 +317,21 @@ function documentDeleteUrl(array $row): string
 <body>
 
 <div class="sidebar">
-    <div class="logo">📁 Archivio</div>
+    <div class="logo">📁 <?= h(t('app_name')) ?></div>
     <div class="menu">
-        <a href="index.php" class="active">🏠 Home</a>
-        <a href="categorie.php">⚙️ Categorie</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>" class="active">🏠 <?= h(t('home')) ?></a>
+        <a href="<?= h(urlWithLang('categorie.php')) ?>">⚙️ <?= h(t('categories')) ?></a>
         <?php if (isAdmin()): ?>
-            <a href="utenti.php">👥 Utenti</a>
-            <a href="backup.php">💾 Backup</a>
+            <a href="<?= h(urlWithLang('utenti.php')) ?>">👥 <?= h(t('users')) ?></a>
+            <a href="<?= h(urlWithLang('backup.php')) ?>">💾 <?= h(t('backup')) ?></a>
         <?php endif; ?>
-        <a href="info.php">ℹ️ Info</a>
-        <a href="logout.php">🚪 Logout</a>
+        <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
+        <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
+    </div>
+
+    <div class="language-switch">
+        <a href="<?= h($langItUrl) ?>" class="<?= $lang === 'it' ? 'active' : '' ?>">IT</a>
+        <a href="<?= h($langEnUrl) ?>" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
     </div>
 </div>
 
@@ -308,14 +340,14 @@ function documentDeleteUrl(array $row): string
     <div class="card">
         <div class="topbar">
             <div>
-                <span class="badge">Archivio attivo</span>
-                <h1>Archivio Famiglia</h1>
-                <p>Gestione documenti, pratiche, referti e file familiari.</p>
+                <span class="badge"><?= h(t('archive_active')) ?></span>
+                <h1><?= h(t('app_name')) ?></h1>
+                <p><?= h(t('dashboard_intro')) ?></p>
             </div>
             <div class="toolbar">
                 <span class="badge">👤 <?= h($_SESSION['username'] ?? '') ?></span>
                 <?php if (isAdmin()): ?>
-                    <a class="btn btn-secondary" href="backup.php">💾 Backup</a>
+                    <a class="btn btn-secondary" href="<?= h(urlWithLang('backup.php')) ?>">💾 <?= h(t('backup')) ?></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -326,20 +358,20 @@ function documentDeleteUrl(array $row): string
     </div>
 
     <div class="dashboard-grid">
-        <div class="stat-card"><small>Documenti totali</small><strong><?= (int)$totalDocs ?></strong></div>
-        <div class="stat-card"><small>Preferiti</small><strong><?= (int)$totalPreferiti ?></strong></div>
-        <div class="stat-card"><small>Risultati visualizzati</small><strong><?= (int)$filteredCount ?></strong></div>
-        <div class="stat-card"><small>Senza data</small><strong><?= (int)$senzaData ?></strong></div>
+        <div class="stat-card"><small><?= h(t('total_documents')) ?></small><strong><?= (int)$totalDocs ?></strong></div>
+        <div class="stat-card"><small><?= h(t('favorites')) ?></small><strong><?= (int)$totalPreferiti ?></strong></div>
+        <div class="stat-card"><small><?= h(t('displayed_results')) ?></small><strong><?= (int)$filteredCount ?></strong></div>
+        <div class="stat-card"><small><?= h(t('without_date')) ?></small><strong><?= (int)$senzaData ?></strong></div>
     </div>
 
     <?php if ($favDocs && $favDocs->num_rows > 0): ?>
         <div class="card">
             <div class="topbar">
                 <div>
-                    <h2>⭐ Documenti importanti</h2>
-                    <p>Accesso rapido ai documenti segnati come preferiti.</p>
+                    <h2>⭐ <?= h(t('important_documents')) ?></h2>
+                    <p><?= h(t('important_documents_text')) ?></p>
                 </div>
-                <a class="btn btn-secondary" href="index.php?preferiti=1">Vedi tutti i preferiti</a>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php?preferiti=1')) ?>"><?= h(t('view_all_favorites')) ?></a>
             </div>
 
             <div class="mini-grid">
@@ -363,8 +395,8 @@ function documentDeleteUrl(array $row): string
     <div class="card">
         <div class="topbar">
             <div>
-                <h2>🕘 Documenti recenti</h2>
-                <p>Ultimi documenti caricati nell’archivio.</p>
+                <h2>🕘 <?= h(t('recent_documents')) ?></h2>
+                <p><?= h(t('recent_documents_text')) ?></p>
             </div>
         </div>
 
@@ -384,7 +416,7 @@ function documentDeleteUrl(array $row): string
                     </a>
                 <?php endwhile; ?>
             <?php else: ?>
-                <p>Nessun documento recente.</p>
+                <p><?= h(t('no_recent_documents')) ?></p>
             <?php endif; ?>
         </div>
     </div>
@@ -392,15 +424,15 @@ function documentDeleteUrl(array $row): string
     <div class="card">
         <div class="topbar">
             <div>
-                <h2>Categorie rapide</h2>
-                <p>Card grandi con immagine categoria ben visibile.</p>
+                <h2><?= h(t('quick_categories')) ?></h2>
+                <p><?= h(t('quick_categories_text')) ?></p>
             </div>
-            <a class="btn btn-secondary" href="categorie.php">⚙️ Gestisci categorie</a>
+            <a class="btn btn-secondary" href="<?= h(urlWithLang('categorie.php')) ?>">⚙️ <?= h(t('manage_categories')) ?></a>
         </div>
 
         <div class="category-grid">
             <?php foreach ($categories as $key => $label): ?>
-                <a class="category-tile" href="index.php?categoria=<?= urlencode($key) ?>">
+                <a class="category-tile" href="<?= h(urlWithLang('index.php?categoria=' . urlencode($key))) ?>">
                     <?php if (!empty($categoryImages[$key])): ?>
                         <img src="<?= h($categoryImages[$key]) ?>" alt="<?= h($label) ?>">
                     <?php else: ?>
@@ -408,7 +440,7 @@ function documentDeleteUrl(array $row): string
                     <?php endif; ?>
                     <div>
                         <strong><?= h($label) ?></strong>
-                        <small><?= (int)($categoryCounts[$key] ?? 0) ?> documenti</small>
+                        <small><?= (int)($categoryCounts[$key] ?? 0) ?> <?= h(t('documents_lowercase')) ?></small>
                     </div>
                 </a>
             <?php endforeach; ?>
@@ -416,25 +448,29 @@ function documentDeleteUrl(array $row): string
     </div>
 
     <div class="card">
-        <h2>Ricerca documenti</h2>
+        <h2><?= h(t('document_search')) ?></h2>
 
         <div class="quick-filter">
-            <a class="badge" href="index.php">Tutti</a>
-            <a class="badge" href="index.php?preferiti=1">⭐ Solo preferiti</a>
-            <a class="badge" href="index.php?anno=<?= date('Y') ?>">Anno <?= date('Y') ?></a>
+            <a class="badge" href="<?= h(urlWithLang('index.php')) ?>"><?= h(t('all')) ?></a>
+            <a class="badge" href="<?= h(urlWithLang('index.php?preferiti=1')) ?>">⭐ <?= h(t('favorites_only')) ?></a>
+            <a class="badge" href="<?= h(urlWithLang('index.php?anno=' . date('Y'))) ?>"><?= h(t('year')) ?> <?= date('Y') ?></a>
         </div>
 
         <form method="GET">
+            <?php if ($lang !== 'it'): ?>
+                <input type="hidden" name="lang" value="<?= h($lang) ?>">
+            <?php endif; ?>
+
             <div class="upload-grid">
                 <div>
-                    <label>Cerca per nome documento</label>
-                    <input type="text" name="search" placeholder="Nome documento, file, codice DOC, tag o note..." value="<?= h($search) ?>">
+                    <label><?= h(t('search_by_document_name')) ?></label>
+                    <input type="text" name="search" placeholder="<?= h(t('search_placeholder')) ?>" value="<?= h($search) ?>">
                 </div>
 
                 <div>
-                    <label>Categoria</label>
+                    <label><?= h(t('category')) ?></label>
                     <select name="categoria">
-                        <option value="">Tutte le categorie</option>
+                        <option value=""><?= h(t('all_categories')) ?></option>
                         <?php foreach ($categories as $key => $label): ?>
                             <option value="<?= h($key) ?>" <?= $categoria === $key ? 'selected' : '' ?>><?= h($label) ?></option>
                         <?php endforeach; ?>
@@ -442,70 +478,54 @@ function documentDeleteUrl(array $row): string
                 </div>
 
                 <div>
-                    <label>Anno pratica</label>
-                    <input type="number" name="anno" placeholder="Es. 2026" value="<?= h($anno) ?>">
+                    <label><?= h(t('practice_year')) ?></label>
+                    <input type="number" name="anno" placeholder="2026" value="<?= h($anno) ?>">
                 </div>
 
                 <div>
-                    <label>Mese pratica</label>
+                    <label><?= h(t('practice_month')) ?></label>
                     <select name="mese">
-                        <option value="">Tutti i mesi</option>
-                        <?php
-                        $mesi = [
-                            1 => 'Gennaio',
-                            2 => 'Febbraio',
-                            3 => 'Marzo',
-                            4 => 'Aprile',
-                            5 => 'Maggio',
-                            6 => 'Giugno',
-                            7 => 'Luglio',
-                            8 => 'Agosto',
-                            9 => 'Settembre',
-                            10 => 'Ottobre',
-                            11 => 'Novembre',
-                            12 => 'Dicembre',
-                        ];
-                        foreach ($mesi as $num => $nome):
-                        ?>
+                        <option value=""><?= h(t('all_months')) ?></option>
+                        <?php foreach ($mesi as $num => $nome): ?>
                             <option value="<?= (int)$num ?>" <?= (string)$mese === (string)$num ? 'selected' : '' ?>><?= h($nome) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div>
-                    <label>Giorno preciso</label>
+                    <label><?= h(t('exact_day')) ?></label>
                     <input type="date" name="data_precisa" value="<?= h($dataPrecisa) ?>">
                 </div>
 
                 <div>
-                    <label>Preferiti</label>
+                    <label><?= h(t('favorites')) ?></label>
                     <select name="preferiti">
-                        <option value="">Tutti</option>
-                        <option value="1" <?= $soloPreferiti ? 'selected' : '' ?>>Solo preferiti</option>
+                        <option value=""><?= h(t('all')) ?></option>
+                        <option value="1" <?= $soloPreferiti ? 'selected' : '' ?>><?= h(t('favorites_only')) ?></option>
                     </select>
                 </div>
             </div>
 
             <div class="toolbar">
-                <button>Cerca</button>
-                <a class="btn btn-secondary" href="index.php">Reset</a>
+                <button><?= h(t('search')) ?></button>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php')) ?>"><?= h(t('reset')) ?></a>
             </div>
         </form>
     </div>
 
     <div class="card">
-        <h2>Carica nuovo documento</h2>
-        <p>Puoi caricare un file già presente oppure, da smartphone, scattare direttamente una foto del documento.</p>
+        <h2><?= h(t('upload_new_document')) ?></h2>
+        <p><?= h(t('upload_new_document_text')) ?></p>
 
-        <form method="POST" action="upload.php" enctype="multipart/form-data">
+        <form method="POST" action="<?= h(urlWithLang('upload.php')) ?>" enctype="multipart/form-data">
             <div class="upload-grid">
                 <div>
-                    <label>Nome documento</label>
-                    <input type="text" name="titolo" placeholder="Esempio: Visita cardiologica papà 2026" required>
+                    <label><?= h(t('document_name')) ?></label>
+                    <input type="text" name="titolo" placeholder="<?= h(t('document_name_placeholder')) ?>" required>
                 </div>
 
                 <div>
-                    <label>Categoria</label>
+                    <label><?= h(t('category')) ?></label>
                     <select name="category" required>
                         <?php foreach ($categories as $key => $label): ?>
                             <option value="<?= h($key) ?>"><?= h($label) ?></option>
@@ -514,52 +534,58 @@ function documentDeleteUrl(array $row): string
                 </div>
 
                 <div>
-                    <label>Data pratica</label>
+                    <label><?= h(t('practice_date')) ?></label>
                     <input type="date" name="data_documento">
                 </div>
 
                 <div>
-                    <label>Tag</label>
-                    <input type="text" name="tags" placeholder="Es. cardiologia, bolletta, banca...">
+                    <label><?= h(t('tags')) ?></label>
+                    <input type="text" name="tags" placeholder="<?= h(t('tags_placeholder')) ?>">
                 </div>
             </div>
 
             <div class="upload-choice-grid">
                 <div class="upload-choice">
-                    <strong>📎 Carica file / PDF</strong>
-                    <small>Usa questa opzione per PDF, immagini, documenti Word, Excel o altri file già presenti.</small>
+                    <strong>📎 <?= h(t('upload_file_pdf')) ?></strong>
+                    <small><?= h(t('upload_file_pdf_text')) ?></small>
                     <input type="file" name="file">
                 </div>
 
                 <div class="upload-choice">
-                    <strong>📷 Scatta foto documento</strong>
-                    <small>Da smartphone apre la fotocamera o la galleria. La foto verrà salvata come documento immagine.</small>
+                    <strong>📷 <?= h(t('take_document_photo')) ?></strong>
+                    <small><?= h(t('take_document_photo_text')) ?></small>
                     <input type="file" name="file_foto" accept="image/*" capture="environment">
                 </div>
             </div>
 
-            <label>Note</label>
-            <textarea name="note" placeholder="Note pratica..." style="min-height:90px;"></textarea>
+            <label><?= h(t('notes')) ?></label>
+            <textarea name="note" placeholder="<?= h(t('notes_placeholder')) ?>" style="min-height:90px;"></textarea>
 
-            <button>⬆️ Carica documento</button>
+            <button>⬆️ <?= h(t('upload_document')) ?></button>
         </form>
     </div>
 
     <div class="card">
         <div class="topbar">
             <div>
-                <h2>Documenti</h2>
-                <p><?= $filteredCount === $totalDocs ? 'Tutti i documenti presenti in archivio.' : ((int)$filteredCount . ' risultati filtrati su ' . (int)$totalDocs . ' documenti.') ?></p>
+                <h2><?= h(t('documents')) ?></h2>
+                <p>
+                    <?php if ($filteredCount === $totalDocs): ?>
+                        <?= h(t('all_documents_in_archive')) ?>
+                    <?php else: ?>
+                        <?= (int)$filteredCount ?> <?= h(t('filtered_results_on')) ?> <?= (int)$totalDocs ?> <?= h(t('documents_lowercase')) ?>.
+                    <?php endif; ?>
+                </p>
             </div>
             <div class="toolbar">
-                <a class="badge" href="index.php?<?= h($queryBase ? $queryBase . '&' : '') ?>view=card">▦ Card</a>
-                <a class="badge" href="index.php?<?= h($queryBase ? $queryBase . '&' : '') ?>view=list">☰ Elenco</a>
+                <a class="badge" href="<?= h(urlWithLang('index.php?' . ($queryBase ? $queryBase . '&' : '') . 'view=card')) ?>">▦ <?= h(t('cards')) ?></a>
+                <a class="badge" href="<?= h(urlWithLang('index.php?' . ($queryBase ? $queryBase . '&' : '') . 'view=list')) ?>">☰ <?= h(t('list')) ?></a>
             </div>
         </div>
 
         <?php if (!$result || $result->num_rows === 0): ?>
 
-            <p>Nessun documento trovato.</p>
+            <p><?= h(t('no_documents_found')) ?></p>
 
         <?php elseif ($view === 'list'): ?>
 
@@ -572,16 +598,16 @@ function documentDeleteUrl(array $row): string
                 $previewUrl = documentPreviewUrl($row);
                 $downloadUrl = documentDownloadUrl($row);
                 $deleteUrl = documentDeleteUrl($row);
-                $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
+                $starUrl = urlWithLang("toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl()));
                 ?>
                 <div class="file clickable-row" data-open="<?= h($previewUrl) ?>">
                     <div class="doc-list-row">
                         <div class="doc-icon"><?= $icon ?></div>
                         <div>
                             <div class="doc-title"><?= ((int)($row['preferito'] ?? 0) === 1 ? '⭐ ' : '') ?><?= h($title) ?></div>
-                            <div class="open-hint">Clicca sulla riga per aprire l’anteprima</div>
-                            <div class="original-name">File originale: <?= h($row['nome_originale']) ?></div>
-                            <div class="doc-code">Archivio: <?= h($row['nome_archivio']) ?></div>
+                            <div class="open-hint"><?= h(t('click_row_preview')) ?></div>
+                            <div class="original-name"><?= h(t('original_file')) ?>: <?= h($row['nome_originale']) ?></div>
+                            <div class="doc-code"><?= h(t('archive_file')) ?>: <?= h($row['nome_archivio']) ?></div>
                             <div class="doc-meta">
                                 <span class="doc-pill">📂 <?= h($catName) ?></span>
                                 <span class="doc-pill">📅 <?= h(fmtDate($row['data_documento'] ?? null)) ?></span>
@@ -594,11 +620,11 @@ function documentDeleteUrl(array $row): string
                             <?php endif; ?>
                         </div>
                         <div class="doc-actions">
-                            <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ Preferito' : '☆ Preferito') ?></a>
-                            <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ Visualizza</a>
-                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
-                            <a class="doc-action" href="edit_documento.php?id=<?= (int)$row['id'] ?>">✏️ Modifica</a>
-                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
+                            <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ ' : '☆ ') ?><?= h(t('favorite')) ?></a>
+                            <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ <?= h(t('view')) ?></a>
+                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ <?= h(t('download')) ?></a>
+                            <a class="doc-action" href="<?= h(urlWithLang('edit_documento.php?id=' . (int)$row['id'])) ?>">✏️ <?= h(t('edit')) ?></a>
+                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('<?= h(t('confirm_delete_document')) ?>')">🗑️ <?= h(t('delete')) ?></a>
                         </div>
                     </div>
                 </div>
@@ -616,16 +642,16 @@ function documentDeleteUrl(array $row): string
                     $previewUrl = documentPreviewUrl($row);
                     $downloadUrl = documentDownloadUrl($row);
                     $deleteUrl = documentDeleteUrl($row);
-                    $starUrl = "toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl());
+                    $starUrl = urlWithLang("toggle_preferito.php?id=" . (int)$row['id'] . "&back=" . urlencode(buildBackUrl()));
                     ?>
                     <div class="doc-card" data-open="<?= h($previewUrl) ?>">
                         <div class="doc-head">
                             <div class="doc-icon"><?= $icon ?></div>
                             <div>
                                 <div class="doc-title"><?= ((int)($row['preferito'] ?? 0) === 1 ? '⭐ ' : '') ?><?= h($title) ?></div>
-                                <div class="open-hint">Clicca sulla card per aprire l’anteprima</div>
-                                <div class="original-name">File: <?= h($row['nome_originale']) ?></div>
-                                <div class="doc-code">Archivio: <?= h($row['nome_archivio']) ?></div>
+                                <div class="open-hint"><?= h(t('click_card_preview')) ?></div>
+                                <div class="original-name"><?= h(t('file')) ?>: <?= h($row['nome_originale']) ?></div>
+                                <div class="doc-code"><?= h(t('archive_file')) ?>: <?= h($row['nome_archivio']) ?></div>
                             </div>
                         </div>
 
@@ -639,15 +665,15 @@ function documentDeleteUrl(array $row): string
                         <?php endif; ?>
 
                         <div class="doc-note">
-                            <?= !empty($row['note']) ? nl2br(h($row['note'])) : 'Nessuna nota inserita.' ?>
+                            <?= !empty($row['note']) ? nl2br(h($row['note'])) : h(t('no_notes')) ?>
                         </div>
 
                         <div class="doc-actions">
-                            <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ Preferito' : '☆ Preferito') ?></a>
-                            <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ Visualizza</a>
-                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
-                            <a class="doc-action" href="edit_documento.php?id=<?= (int)$row['id'] ?>">✏️ Modifica</a>
-                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('Eliminare questo documento?')">🗑️ Elimina</a>
+                            <a class="doc-action star" href="<?= h($starUrl) ?>"><?= ((int)($row['preferito'] ?? 0) === 1 ? '★ ' : '☆ ') ?><?= h(t('favorite')) ?></a>
+                            <a class="doc-action" href="<?= h($previewUrl) ?>" target="_blank">👁️ <?= h(t('view')) ?></a>
+                            <a class="doc-action" href="<?= h($downloadUrl) ?>">⬇️ <?= h(t('download')) ?></a>
+                            <a class="doc-action" href="<?= h(urlWithLang('edit_documento.php?id=' . (int)$row['id'])) ?>">✏️ <?= h(t('edit')) ?></a>
+                            <a class="doc-action danger" href="<?= h($deleteUrl) ?>" onclick="return confirm('<?= h(t('confirm_delete_document')) ?>')">🗑️ <?= h(t('delete')) ?></a>
                         </div>
                     </div>
                 <?php endwhile; ?>
