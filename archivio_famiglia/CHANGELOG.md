@@ -1,6 +1,38 @@
 # 📜 Changelog
 
-All notable changes to **FamilyDocs (ex Archivio Famiglia)** will be documented in this file.
+## [1.1.3] - 2026-04-27
+
+### 🚀 Aggiunto
+
+* OCR automatico locale (Tesseract)
+* Supporto italiano + inglese OCR
+* Salvataggio testo OCR nei documenti
+* Suggerimenti intelligenti (soft):
+
+  * Titolo
+  * Tag
+  * Data documento
+* Ricerca avanzata su contenuto OCR
+* Cleanup automatico link condivisi scaduti
+* Auto-creazione tabella `share_links` (compatibilità upgrade)
+
+### 🎨 Migliorato
+
+* UX mobile upload (input file e layout)
+* Feedback utente dopo upload (stato OCR)
+* Logging avvio add-on (FamilyDocs branding)
+
+### 🔒 Sicurezza
+
+* Verifica `is_uploaded_file`
+* Controllo MIME ↔ estensione
+* Protezione file orfani su errore DB
+* Sanitizzazione avanzata input utente
+
+### 🛠 Corretto
+
+* Fix bug upload incompleto (critico)
+* Fix compatibilità installazioni precedenti (share links)
 
 ---
 
