@@ -68,12 +68,30 @@ $lang = currentLanguage();
 <title><?= h(t('login')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.login-card{width:100%;max-width:460px;}
-.language-switch{display:flex;gap:8px;margin-bottom:16px;justify-content:flex-end;}
-.language-switch a{font-size:13px;text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text-muted);}
-.language-switch a.active{color:var(--text);background:var(--accent-soft);border-color:var(--accent);}
-.login-subtitle{margin-top:-8px;color:var(--text-muted);}
+.login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    width:100%;
+}
+
+.login-card{
+    width:100%;
+    max-width:460px;
+}
+
+.login-card .language-switch{
+    justify-content:flex-end;
+    margin-top:0;
+    margin-bottom:16px;
+}
+
+.login-subtitle{
+    margin-top:-8px;
+    color:var(--muted);
+}
 </style>
 </head>
 <body>
@@ -81,10 +99,7 @@ $lang = currentLanguage();
 <div class="login-wrap">
     <div class="card login-card">
 
-        <div class="language-switch">
-            <a href="?lang=it" class="<?= $lang === 'it' ? 'active' : '' ?>">IT</a>
-            <a href="?lang=en" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
-        </div>
+        <?= languageSwitchHtml() ?>
 
         <span class="badge"><?= h(t('app_name')) ?></span>
         <h1><?= h(t('login')) ?></h1>
@@ -99,6 +114,10 @@ $lang = currentLanguage();
         <?php endif; ?>
 
         <form method="POST">
+            <?php if ($lang !== 'it'): ?>
+                <input type="hidden" name="lang" value="<?= h($lang) ?>">
+            <?php endif; ?>
+
             <label><?= h(t('username')) ?></label>
             <input name="username" placeholder="<?= h(t('username')) ?>" required>
 
