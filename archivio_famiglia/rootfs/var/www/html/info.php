@@ -63,12 +63,14 @@ $logoSrc = is_file($localLogo)
 
 $repoUrl = 'https://github.com/simone-losito/archivio-famiglia-addon';
 $changelogUrl = $repoUrl . '/blob/main/archivio_famiglia/CHANGELOG.md';
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Info Archivio</title>
+<title><?= h(t('info')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 
 <style>
@@ -183,77 +185,78 @@ $changelogUrl = $repoUrl . '/blob/main/archivio_famiglia/CHANGELOG.md';
 <div class="wrap">
 
     <div class="top-pill-bar">
-        <a href="index.php" class="pill-home">🏠 Torna alla home</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>" class="pill-home">🏠 <?= h(t('back_to_home')) ?></a>
     </div>
 
     <div class="center">
-        <img src="<?= h($logoSrc) ?>" class="logo-img" alt="Archivio Famiglia">
+        <img src="<?= h($logoSrc) ?>" class="logo-img" alt="<?= h(t('app_name')) ?>">
 
-        <h1>Archivio Famiglia</h1>
-        <p class="big">Gestione documentale familiare integrata in Home Assistant</p>
+        <h1><?= h(t('app_name')) ?></h1>
+        <p class="big"><?= h(t('app_subtitle')) ?></p>
+        <p class="author-line"><?= h(t('app_legacy_name')) ?></p>
 
-        <p><b>Versione:</b> <?= h($addonVersion) ?></p>
+        <p><b><?= h(t('version')) ?>:</b> <?= h($addonVersion) ?></p>
         <p class="author-line">by <b>SimoncinoProjects</b> / Simone Losito</p>
     </div>
 
     <div class="info-box">
-        <h2>📊 Statistiche archivio</h2>
+        <h2>📊 <?= h(t('archive_statistics')) ?></h2>
 
         <div class="stats">
             <div class="stat">
-                📄 Documenti
+                📄 <?= h(t('documents')) ?>
                 <b><?= (int)$totDocumenti ?></b>
             </div>
 
             <div class="stat">
-                👥 Utenti
+                👥 <?= h(t('users')) ?>
                 <b><?= (int)$totUtenti ?></b>
             </div>
 
             <div class="stat">
-                💾 Spazio utilizzato
+                💾 <?= h(t('used_space')) ?>
                 <b><?= h($spazio) ?></b>
             </div>
         </div>
     </div>
 
     <div class="info-box">
-        <h2>👨‍💻 Autore</h2>
+        <h2>👨‍💻 <?= h(t('author')) ?></h2>
         <p><b>SimoncinoProjects</b></p>
-        <p>Creato e mantenuto da <b>Simone Losito</b>.</p>
+        <p><?= h(t('created_and_maintained_by')) ?> <b>Simone Losito</b>.</p>
     </div>
 
     <div class="info-box center">
         <h2>🔗 Repository</h2>
         <a class="link-pill" href="<?= h($repoUrl) ?>" target="_blank" rel="noopener">
-            Vai al progetto su GitHub
+            <?= h(t('go_to_github_project')) ?>
         </a>
     </div>
 
     <div class="info-box center">
         <h2>📜 Changelog</h2>
         <a class="link-pill" href="<?= h($changelogUrl) ?>" target="_blank" rel="noopener">
-            Vedi storico versioni
+            <?= h(t('view_version_history')) ?>
         </a>
     </div>
 
     <div class="info-box center">
-        <h2>☕ Supporta il progetto</h2>
-        <p>Se ti è utile puoi offrire un caffè allo sviluppo.</p>
+        <h2>☕ <?= h(t('support_project')) ?></h2>
+        <p><?= h(t('support_project_text')) ?></p>
         <p>
             <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank" rel="noopener">
-                <img src="https://img.shields.io/badge/Supporta%20il%20progetto-PayPal-blue?style=for-the-badge&logo=paypal" alt="Supporta il progetto con PayPal">
+                <img src="https://img.shields.io/badge/Support%20the%20project-PayPal-blue?style=for-the-badge&logo=paypal" alt="<?= h(t('support_project')) ?>">
             </a>
         </p>
     </div>
 
     <div class="info-box">
-        <h2>⚙️ Info tecniche</h2>
+        <h2>⚙️ <?= h(t('technical_info')) ?></h2>
         <p>PHP 8.2 + Apache</p>
-        <p>Database: MariaDB add-on Home Assistant</p>
-        <p>Storage documenti: /share/archivio</p>
-        <p>Upload persistente tramite symlink /var/www/html/uploads</p>
-        <p>Add-on Home Assistant su porta 8091</p>
+        <p><?= h(t('database')) ?>: MariaDB add-on Home Assistant</p>
+        <p><?= h(t('document_storage')) ?>: /share/archivio</p>
+        <p><?= h(t('persistent_upload')) ?>: /var/www/html/uploads</p>
+        <p><?= h(t('home_assistant_addon_port')) ?>: 8091</p>
     </div>
 
 </div>
