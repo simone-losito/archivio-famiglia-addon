@@ -81,12 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
                 mkdir($dir, 0775, true);
             }
 
-            $msg = "Categoria creata correttamente";
+            $msg = t('category_created_successfully');
         } else {
-            $msg = "Categoria già esistente";
+            $msg = t('category_already_exists');
         }
     } else {
-        $msg = "Nome categoria non valido";
+        $msg = t('invalid_category_name');
     }
 }
 
@@ -106,9 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_category'])) {
         }
 
         $stmt->execute();
-        $msg = "Categoria aggiornata";
+        $msg = t('category_updated');
     } else {
-        $msg = "Dati categoria non validi";
+        $msg = t('invalid_category_data');
     }
 }
 
@@ -116,7 +116,7 @@ if (isset($_GET['delete'])) {
     $slug = safeCategory((string)$_GET['delete']);
 
     if ($slug === 'altro') {
-        $msg = "La categoria Altro non può essere eliminata";
+        $msg = t('other_category_cannot_be_deleted');
     } else {
         $stmt = $conn->prepare("SELECT COUNT(*) AS totale FROM documenti WHERE categoria = ?");
         $stmt->bind_param("s", $slug);
@@ -124,39 +124,41 @@ if (isset($_GET['delete'])) {
         $count = (int)($stmt->get_result()->fetch_assoc()['totale'] ?? 0);
 
         if ($count > 0) {
-            $msg = "Non puoi eliminare una categoria che contiene documenti";
+            $msg = t('cannot_delete_category_with_documents');
         } else {
             $stmt = $conn->prepare("DELETE FROM categorie WHERE slug = ?");
             $stmt->bind_param("s", $slug);
             $stmt->execute();
 
-            $msg = "Categoria eliminata";
+            $msg = t('category_deleted');
         }
     }
 }
 
 $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Categorie</title>
+<title><?= h(t('categories')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="logo">📁 Archivio</div>
+    <div class="logo">📁 <?= h(t('app_name')) ?></div>
     <div class="menu">
-        <a href="index.php">🏠 Home</a>
-        <a href="categorie.php" class="active">⚙️ Categorie</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>">🏠 <?= h(t('home')) ?></a>
+        <a href="<?= h(urlWithLang('categorie.php')) ?>" class="active">⚙️ <?= h(t('categories')) ?></a>
         <?php if (isAdmin()): ?>
-            <a href="utenti.php">👥 Utenti</a>
-            <a href="backup.php">💾 Backup</a>
+            <a href="<?= h(urlWithLang('utenti.php')) ?>">👥 <?= h(t('users')) ?></a>
+            <a href="<?= h(urlWithLang('backup.php')) ?>">💾 <?= h(t('backup')) ?></a>
         <?php endif; ?>
-        <a href="info.php">ℹ️ Info</a>
-        <a href="logout.php">🚪 Logout</a>
+        <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
+        <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
     </div>
 </div>
 
@@ -165,12 +167,12 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
     <div class="card">
         <div class="topbar">
             <div>
-                <span class="badge">Gestione archivio</span>
-                <h1>Categorie</h1>
-                <p>Crea categorie, modifica nome, carica immagine e visualizza anteprima.</p>
+                <span class="badge"><?= h(t('archive_management')) ?></span>
+                <h1><?= h(t('categories')) ?></h1>
+                <p><?= h(t('categories_intro')) ?></p>
             </div>
             <div class="toolbar">
-                <a class="btn btn-secondary" href="index.php">← Home</a>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php')) ?>">← <?= h(t('home')) ?></a>
             </div>
         </div>
 
@@ -180,36 +182,36 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
     </div>
 
     <div class="card">
-        <h2>Nuova categoria</h2>
+        <h2><?= h(t('new_category')) ?></h2>
 
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="create_category" value="1">
 
-            <label>Nome categoria</label>
-            <input type="text" name="nome" placeholder="Esempio: Banca, Scuola, Assicurazioni..." required>
+            <label><?= h(t('category_name')) ?></label>
+            <input type="text" name="nome" placeholder="<?= h(t('category_name_placeholder')) ?>" required>
 
-            <label>Immagine categoria</label>
-            <small>Carica un’immagine JPG, PNG, WEBP o GIF che identifichi la categoria.</small>
+            <label><?= h(t('category_image')) ?></label>
+            <small><?= h(t('category_image_help')) ?></small>
             <input type="file" name="immagine" accept="image/*">
 
-            <button>Crea categoria</button>
+            <button><?= h(t('create_category')) ?></button>
         </form>
     </div>
 
     <div class="card">
         <div class="topbar">
             <div>
-                <h2>Categorie esistenti</h2>
-                <p>La categoria “Altro” è protetta e non può essere eliminata.</p>
+                <h2><?= h(t('existing_categories')) ?></h2>
+                <p><?= h(t('other_category_protected_text')) ?></p>
             </div>
             <div class="toolbar">
-                <a class="badge" href="categorie.php?view=card">▦ Card</a>
-                <a class="badge" href="categorie.php?view=list">☰ Elenco</a>
+                <a class="badge" href="<?= h(urlWithLang('categorie.php?view=card')) ?>">▦ <?= h(t('cards')) ?></a>
+                <a class="badge" href="<?= h(urlWithLang('categorie.php?view=list')) ?>">☰ <?= h(t('list')) ?></a>
             </div>
         </div>
 
         <?php if (!$res || $res->num_rows === 0): ?>
-            <p>Nessuna categoria presente</p>
+            <p><?= h(t('no_categories')) ?></p>
 
         <?php elseif ($view === 'list'): ?>
 
@@ -233,22 +235,22 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
                                 <input type="hidden" name="edit_category" value="1">
                                 <input type="hidden" name="slug" value="<?= h($c['slug']) ?>">
 
-                                <label>Nome categoria</label>
+                                <label><?= h(t('category_name')) ?></label>
                                 <input type="text" name="nome" value="<?= h($c['nome']) ?>" required>
 
-                                <label>Immagine categoria</label>
-                                <small>Scegli una nuova immagine solo se vuoi sostituire quella attuale.</small>
+                                <label><?= h(t('category_image')) ?></label>
+                                <small><?= h(t('replace_category_image_help')) ?></small>
                                 <input type="file" name="immagine" accept="image/*">
 
-                                <button>Salva modifica</button>
+                                <button><?= h(t('save_change')) ?></button>
                             </form>
                         </div>
 
                         <div class="actions">
                             <?php if ($c['slug'] !== 'altro'): ?>
-                                <a class="btn btn-danger" href="categorie.php?delete=<?= urlencode($c['slug']) ?>&view=list" onclick="return confirm('Eliminare questa categoria?')">🗑️ Elimina</a>
+                                <a class="btn btn-danger" href="<?= h(urlWithLang('categorie.php?delete=' . urlencode($c['slug']) . '&view=list')) ?>" onclick="return confirm('<?= h(t('confirm_delete_category')) ?>')">🗑️ <?= h(t('delete')) ?></a>
                             <?php else: ?>
-                                <span class="badge">Categoria protetta</span>
+                                <span class="badge"><?= h(t('protected_category')) ?></span>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -263,7 +265,7 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
                         <?php if (!empty($c['immagine'])): ?>
                             <img class="preview" src="<?= h($c['immagine']) ?>" alt="<?= h($c['nome']) ?>">
                         <?php else: ?>
-                            <div class="no-img">Nessuna immagine</div>
+                            <div class="no-img"><?= h(t('no_image')) ?></div>
                         <?php endif; ?>
 
                         <div>
@@ -275,21 +277,21 @@ $res = $conn->query("SELECT * FROM categorie ORDER BY nome ASC");
                             <input type="hidden" name="edit_category" value="1">
                             <input type="hidden" name="slug" value="<?= h($c['slug']) ?>">
 
-                            <label>Nome categoria</label>
+                            <label><?= h(t('category_name')) ?></label>
                             <input type="text" name="nome" value="<?= h($c['nome']) ?>" required>
 
-                            <label>Immagine categoria</label>
-                            <small>Scegli file solo se vuoi cambiare immagine.</small>
+                            <label><?= h(t('category_image')) ?></label>
+                            <small><?= h(t('change_image_only_if_needed')) ?></small>
                             <input type="file" name="immagine" accept="image/*">
 
-                            <button>Salva</button>
+                            <button><?= h(t('save')) ?></button>
                         </form>
 
                         <div class="actions">
                             <?php if ($c['slug'] !== 'altro'): ?>
-                                <a class="btn btn-danger" href="categorie.php?delete=<?= urlencode($c['slug']) ?>&view=card" onclick="return confirm('Eliminare questa categoria?')">🗑️ Elimina</a>
+                                <a class="btn btn-danger" href="<?= h(urlWithLang('categorie.php?delete=' . urlencode($c['slug']) . '&view=card')) ?>" onclick="return confirm('<?= h(t('confirm_delete_category')) ?>')">🗑️ <?= h(t('delete')) ?></a>
                             <?php else: ?>
-                                <span class="badge">Categoria protetta</span>
+                                <span class="badge"><?= h(t('protected_category')) ?></span>
                             <?php endif; ?>
                         </div>
                     </div>
