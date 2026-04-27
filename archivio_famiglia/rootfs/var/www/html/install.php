@@ -214,29 +214,18 @@ $lang = currentLanguage();
     align-items:center;
     justify-content:center;
     padding:24px;
+    width:100%;
 }
+
 .login-card{
     width:100%;
     max-width:520px;
 }
-.language-switch{
-    display:flex;
-    gap:8px;
-    margin-bottom:16px;
+
+.login-card .language-switch{
     justify-content:flex-end;
-}
-.language-switch a{
-    font-size:13px;
-    text-decoration:none;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    color:var(--text-muted);
-}
-.language-switch a.active{
-    color:var(--text);
-    background:var(--accent-soft);
-    border-color:var(--accent);
+    margin-top:0;
+    margin-bottom:16px;
 }
 </style>
 </head>
@@ -245,10 +234,7 @@ $lang = currentLanguage();
 <div class="login-wrap">
     <div class="card login-card">
 
-        <div class="language-switch">
-            <a href="?lang=it" class="<?= $lang === 'it' ? 'active' : '' ?>">IT</a>
-            <a href="?lang=en" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
-        </div>
+        <?= languageSwitchHtml() ?>
 
         <span class="badge"><?= h(t('first_setup')) ?></span>
         <h1>🚀 <?= h(t('app_name')) ?></h1>
@@ -259,6 +245,10 @@ $lang = currentLanguage();
         <?php endif; ?>
 
         <form method="POST">
+            <?php if ($lang !== 'it'): ?>
+                <input type="hidden" name="lang" value="<?= h($lang) ?>">
+            <?php endif; ?>
+
             <label><?= h(t('admin_username')) ?></label>
             <input name="username" placeholder="<?= h(t('admin_username')) ?>" required>
 
