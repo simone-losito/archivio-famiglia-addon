@@ -11,6 +11,9 @@ RUN apt-get update \
         tar \
         libonig-dev \
         libxml2-dev \
+        tesseract-ocr \
+        tesseract-ocr-ita \
+        tesseract-ocr-eng \
     && docker-php-ext-install \
         mysqli \
         pdo \
