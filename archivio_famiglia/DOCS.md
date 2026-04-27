@@ -1,58 +1,172 @@
-# 📁 Archivio Famiglia – Guida Rapida
+# 📁 FamilyDocs – Quick Guide
 
-Benvenuto 👋  
-Questo add-on ti permette di gestire un archivio documentale familiare direttamente dentro Home Assistant.
+Welcome 👋
+This add-on allows you to manage a **family document archive directly inside Home Assistant**.
 
 ---
 
-## ☕ Supporta il progetto
+## ☕ Support the project
 
 <p align="center">
   <a href="https://www.paypal.com/paypalme/simoncinoprojects" target="_blank">
-    <img src="https://img.shields.io/badge/☕%20Offrimi%20un%20caffè-PayPal-blue?style=for-the-badge&logo=paypal" />
+    <img src="https://img.shields.io/badge/☕%20Support%20the%20project-PayPal-blue?style=for-the-badge&logo=paypal" />
   </a>
 </p>
 
 <p align="center">
-Supportare il progetto significa aiutare lo sviluppo 🚀
+Supporting the project helps development 🚀
 </p>
 
-🔗 Repository ufficiale  
+🔗 Official repository
 👉 https://github.com/simone-losito/archivio-famiglia-addon
 
 ---
+
+# 🇬🇧 ENGLISH
+
+## 🚀 First start
+
+At first launch you will see a setup screen.
+
+You will create:
+
+* 👤 Username
+* 🔐 Password
+
+The system will automatically create:
+
+* Database
+* Tables
+* Default categories
+* Demo PDF document
+* Admin account
+
+---
+
+## 🧭 Interface
+
+### 📂 Categories
+
+Organize documents by type:
+
+* Medical records
+* Reports
+* Home
+* Car
+* Other
+
+You can edit or create new ones.
+
+---
+
+### 📄 Documents
+
+You can:
+
+* Upload files (PDF, images, etc.)
+* 📷 Take photos from smartphone
+* Add title
+* Add notes
+* Add tags
+* Mark as ⭐ favorite
+* Preview files
+* Download files
+
+---
+
+### 👥 Users
+
+* Create family users
+* Roles: admin / user
+* Enable / disable users
+
+---
+
+### 🔗 Sharing
+
+You can generate temporary public links:
+
+* access only to that file
+* automatic expiration
+
+---
+
+### 💾 Backup
+
+You can backup:
+
+* Database
+* Files
+
+The system keeps only the latest backups automatically.
+
+---
+
+## 📂 Storage
+
+All documents are stored in:
+
+```text
+/share/archivio
+```
+
+✔ persistent
+✔ accessible via network (Samba)
+✔ not deleted on add-on reinstall
+
+---
+
+## ⚠️ Common issues
+
+Check:
+
+* MariaDB add-on is running
+* Database credentials are correct
+* Configuration is valid
+
+---
+
+## 🔄 Reinstall
+
+If you reinstall the add-on:
+
+* ❌ files are NOT deleted
+* ❌ database is NOT deleted (unless manually removed)
+
+---
+
+# 🇮🇹 ITALIANO
 
 ## 🚀 Primo utilizzo
 
 Al primo avvio vedrai una schermata di configurazione.
 
-Ti verrà chiesto di creare:
+Dovrai creare:
 
-- 👤 Nome utente
-- 🔐 Password
+* 👤 Nome utente
+* 🔐 Password
 
 Il sistema creerà automaticamente:
 
-- Database
-- Tabelle
-- Categorie base
-- Documento PDF demo
-- Account amministratore
+* Database
+* Tabelle
+* Categorie base
+* Documento PDF demo
+* Account amministratore
 
 ---
 
 ## 🧭 Interfaccia
 
 ### 📂 Categorie
-Organizza i documenti per tipo:
 
-- Cartelle cliniche  
-- Referti  
-- Casa  
-- Auto  
-- Altro  
+Organizza i documenti:
 
-Puoi modificarle o crearne di nuove.
+* Cartelle cliniche
+* Referti
+* Casa
+* Auto
+* Altro
 
 ---
 
@@ -60,40 +174,37 @@ Puoi modificarle o crearne di nuove.
 
 Puoi:
 
-- Caricare file (PDF, immagini, ecc.)
-- 📷 Scattare foto direttamente da smartphone
-- Aggiungere titolo
-- Inserire note
-- Aggiungere tag
-- Segnare come ⭐ preferiti
-- Visualizzare anteprima
-- Scaricare file
+* Caricare file (PDF, immagini, ecc.)
+* 📷 Scattare foto da smartphone
+* Inserire titolo
+* Aggiungere note
+* Inserire tag
+* Segnare ⭐ preferiti
+* Visualizzare anteprima
+* Scaricare file
 
 ---
 
 ### 👥 Utenti
 
-- Creazione utenti familiari
-- Ruoli: admin / user
-- Attivazione / disattivazione utenti
+* Creazione utenti familiari
+* Ruoli: admin / user
+* Attivazione / disattivazione
 
 ---
 
 ### 🔗 Condivisione
 
-Puoi generare link temporanei per condividere documenti.
-
-- accesso solo al singolo file
-- scadenza automatica
+* link temporanei
+* accesso solo al file
+* scadenza automatica
 
 ---
 
 ### 💾 Backup
 
-Puoi creare backup di:
-
-- Database
-- Documenti
+* backup database
+* backup documenti
 
 Il sistema mantiene automaticamente gli ultimi backup.
 
@@ -101,14 +212,13 @@ Il sistema mantiene automaticamente gli ultimi backup.
 
 ## 📂 Dove vengono salvati i file
 
-Tutti i documenti sono salvati in:
-
+```text
 /share/archivio
+```
 
-
-✔ persistente  
-✔ accessibile via rete (Samba)  
-✔ non viene cancellato reinstallando l’add-on  
+✔ persistente
+✔ accessibile via rete
+✔ non cancellato reinstallando
 
 ---
 
@@ -116,70 +226,68 @@ Tutti i documenti sono salvati in:
 
 Controlla:
 
-- Add-on **MariaDB attivo**
-- Credenziali corrette
-- Configurazione DB corretta
+* MariaDB attivo
+* credenziali corrette
+* configurazione DB
 
 ---
 
 ## 🔄 Reinstallazione
 
-Se reinstalli l’add-on:
-
-- ❌ NON perdi i file
-- ❌ NON perdi il database (se non lo cancelli manualmente)
+* ❌ non perdi i file
+* ❌ non perdi il database
 
 ---
 
-# 🔧 Sezione tecnica
+# 🔧 Technical section
 
 ## Database
 
-Motore: MariaDB
+Engine: MariaDB
 
-Tabelle:
+Tables:
 
-- utenti
-- categorie
-- documenti
-- share_links
+* utenti
+* categorie
+* documenti
+* share_links
 
 ---
 
-## Porte
+## Ports
 
-- Container: `80`
-- Host: `8091` (configurabile)
+* Container: `80`
+* Host: `8091` (configurable)
 
 ---
 
 ## Storage
 
-- `/share/archivio` → documenti
-- `/data/options.json` → configurazione add-on
-- MariaDB → database
+* `/share/archivio` → documents
+* `/data/options.json` → add-on config
+* MariaDB → database
 
 ---
 
-## Architettura
+## Architecture
 
-- PHP 8.2
-- Apache
-- Docker
-- Home Assistant Add-on
-
----
-
-## 🧠 Note importanti
-
-Il wizard iniziale parte SOLO se:
-
-- database vuoto
-- nessun utente presente
+* PHP 8.2
+* Apache
+* Docker
+* Home Assistant Add-on
 
 ---
 
-## 👨‍💻 Autore
+## 🧠 Important note
 
-**Simone Losito**  
+The setup wizard runs ONLY if:
+
+* database is empty
+* no users exist
+
+---
+
+## 👨‍💻 Author
+
+**Simone Losito**
 SimoncinoProjects
