@@ -160,6 +160,8 @@ $lang = currentLanguage();
         <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
         <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
     </div>
+
+    <?= languageSwitchHtml() ?>
 </div>
 
 <div class="main">
