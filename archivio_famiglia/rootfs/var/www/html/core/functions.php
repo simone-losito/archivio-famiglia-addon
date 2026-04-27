@@ -1,6 +1,10 @@
 <?php
 // core/functions.php
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 function h($value): string
 {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
@@ -18,17 +22,33 @@ function normalizeLanguage(?string $lang): string
     return in_array($lang, supportedLanguages(), true) ? $lang : 'it';
 }
 
+function saveCurrentLanguage(string $lang): void
+{
+    $lang = normalizeLanguage($lang);
+
+    $_SESSION['lang'] = $lang;
+
+    if (!headers_sent()) {
+        setcookie('familydocs_lang', $lang, [
+            'expires' => time() + (86400 * 365),
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
+}
+
 function currentLanguage(): string
 {
     if (isset($_GET['lang'])) {
         $lang = normalizeLanguage($_GET['lang']);
+        saveCurrentLanguage($lang);
+        return $lang;
+    }
 
-        $_SESSION['lang'] = $lang;
-
-        if (!headers_sent()) {
-            setcookie('familydocs_lang', $lang, time() + (86400 * 365), '/', '', false, true);
-        }
-
+    if (isset($_POST['lang'])) {
+        $lang = normalizeLanguage($_POST['lang']);
+        saveCurrentLanguage($lang);
         return $lang;
     }
 
@@ -39,7 +59,6 @@ function currentLanguage(): string
     if (!empty($_COOKIE['familydocs_lang'])) {
         $lang = normalizeLanguage($_COOKIE['familydocs_lang']);
         $_SESSION['lang'] = $lang;
-
         return $lang;
     }
 
@@ -91,10 +110,6 @@ function urlWithLang(string $url): string
 {
     $lang = currentLanguage();
 
-    if ($lang === 'it') {
-        return $url;
-    }
-
     if (preg_match('/([?&])lang=(it|en)/', $url)) {
         return preg_replace('/([?&])lang=(it|en)/', '$1lang=' . urlencode($lang), $url);
     }
@@ -108,7 +123,7 @@ function languageUrl(string $lang): string
 {
     $lang = normalizeLanguage($lang);
 
-    $path = $_SERVER['PHP_SELF'] ?? 'index.php';
+    $path = $_SERVER['SCRIPT_NAME'] ?? ($_SERVER['PHP_SELF'] ?? 'index.php');
     $query = $_GET ?? [];
     $query['lang'] = $lang;
 
