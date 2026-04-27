@@ -258,3 +258,37 @@ function redirect(string $url): void
     header("Location: " . urlWithLang($url));
     exit;
 }
+
+function ensureShareLinksTable(): void
+{
+    global $conn;
+
+    if (!isset($conn) || !$conn instanceof mysqli) {
+        return;
+    }
+
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS share_links (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            token VARCHAR(80) NOT NULL UNIQUE,
+            categoria VARCHAR(100) NOT NULL,
+            nome_archivio VARCHAR(255) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_share_token (token),
+            INDEX idx_share_expires_at (expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+}
+
+function cleanupExpiredShareLinks(): void
+{
+    global $conn;
+
+    if (!isset($conn) || !$conn instanceof mysqli) {
+        return;
+    }
+
+    ensureShareLinksTable();
+    $conn->query("DELETE FROM share_links WHERE expires_at <= NOW()");
+}
