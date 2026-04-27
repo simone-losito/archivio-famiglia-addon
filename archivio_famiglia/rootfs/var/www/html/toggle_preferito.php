@@ -14,5 +14,8 @@ if ($id > 0) {
     $stmt->execute();
 }
 
+/* Mantiene la lingua anche nel redirect */
+$back = urlWithLang($back);
+
 header("Location: " . $back);
 exit;
