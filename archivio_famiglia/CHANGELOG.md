@@ -1,129 +1,170 @@
 # 📜 Changelog
 
-Tutte le modifiche importanti di Archivio Famiglia.
+All notable changes to **FamilyDocs (ex Archivio Famiglia)** will be documented in this file.
+
+---
+
+## [1.1.2] - 2026-04-27
+
+### Added
+
+* 🌍 Multilanguage support (Italian / English)
+* 🌙☀️ Theme toggle (Dark / Light)
+* Language persistence via session + cookie
+
+### Improved
+
+* README fully internationalized
+* UI consistency across pages
+* Add-on metadata and naming aligned to **FamilyDocs**
+
+### Fixed
+
+* Fix language switch not persisting across pages
+* Fix CSS inconsistencies (layout + pills)
+* Minor UI alignment issues
 
 ---
 
 ## [1.1.1] - 2026-04-26
 
-### Migliorato
-- Stabilizzazione generale add-on Home Assistant
-- Migliorata sicurezza upload (basename, validazione categorie)
-- Migliore gestione errori upload file
-- Ottimizzazione gestione percorsi `/share/archivio`
-- Migliorata compatibilità mobile
+### Improved
 
-### Corretto
-- Fix path traversal upload/download
-- Fix generazione link pubblici
-- Fix lettura configurazione add-on (`addon_options.json`)
-- Fix piccoli bug UI tema light/dark
+* General Home Assistant add-on stabilization
+* Improved upload security (basename, category validation)
+* Better upload error handling
+* Improved `/share/archivio` path handling
+* Improved mobile compatibility
+
+### Fixed
+
+* Fix path traversal (upload/download)
+* Fix public link generation
+* Fix add-on config reading (`addon_options.json`)
+* Minor UI fixes (light/dark theme)
 
 ---
 
 ## [1.1.0] - 2026-04-25
 
-### Aggiunto
-- Upload da fotocamera smartphone 📷
-- Campo separato:
-  - file/PDF
-  - scatta foto documento
+### Added
 
-### Migliorato
-- Form upload ottimizzato per mobile
-- UX più chiara per caricamento documenti
+* 📷 Smartphone camera upload
+* Dual upload fields:
+
+  * file/PDF
+  * take document photo
+
+### Improved
+
+* Mobile-optimized upload form
+* Clearer UX for document upload
 
 ---
 
 ## [1.0.9] - 2026-04-25
 
-### Aggiunto
-- Pagina **Info**
-- Statistiche archivio:
-  - documenti totali
-  - utenti totali
-  - spazio occupato
-- Link GitHub
-- Link PayPal supporto progetto
+### Added
 
-### Migliorato
-- Branding progetto (SimoncinoProjects)
-- README con logo e screenshot
-- Documentazione migliorata
+* Info page
+* Archive statistics:
+
+  * total documents
+  * total users
+  * used space
+* GitHub link
+* PayPal support link
+
+### Improved
+
+* Project branding (SimoncinoProjects)
+* README with logo and screenshots
+* Documentation improvements
 
 ---
 
 ## [1.0.8] - 2026-04-25
 
-### Aggiunto
-- Preparazione sistema telemetry (disattivo di default)
+### Added
+
+* Telemetry system (disabled by default)
 
 ---
 
 ## [1.0.7] - 2026-04-25
 
-### Corretto
-- Fix wizard installazione su database vuoto
-- Fix `SHOW TABLES LIKE` compatibile MariaDB
+### Fixed
+
+* Installation wizard fix on empty database
+* MariaDB compatibility for `SHOW TABLES LIKE`
 
 ---
 
 ## [1.0.6] - 2026-04-25
 
-### Migliorato
-- Controllo installazione robusto:
-  - wizard solo se tabella utenti assente
-  - oppure tabella utenti vuota
+### Improved
+
+* Robust installation detection:
+
+  * wizard runs if users table missing
+  * or users table empty
 
 ---
 
 ## [1.0.5] - 2026-04-25
 
-### Aggiunto
-- Wizard primo avvio
-- Creazione automatica:
-  - tabelle database
-  - categorie base
-  - primo utente admin
-  - PDF demo
+### Added
+
+* First setup wizard
+* Automatic creation:
+
+  * database tables
+  * default categories
+  * admin user
+  * demo PDF
 
 ---
 
 ## [1.0.4] - 2026-04-25
 
-### Corretto
-- Lettura configurazione MariaDB da add-on
+### Fixed
+
+* MariaDB config reading from add-on
 
 ---
 
 ## [1.0.3] - 2026-04-25
 
-### Corretto
-- Fix connessione database add-on
+### Fixed
+
+* Database connection issues
 
 ---
 
 ## [1.0.2] - 2026-04-25
 
-### Corretto
-- Fix mapping porta add-on → Apache
+### Fixed
+
+* Add-on port mapping (Apache)
 
 ---
 
 ## [1.0.1] - 2026-04-25
 
-### Corretto
-- Fix avvio `run.sh`
+### Fixed
+
+* `run.sh` startup issue
 
 ---
 
 ## [1.0.0] - 2026-04-25
 
-### Prima versione
-- Add-on Home Assistant installabile
-- PHP + Apache + MariaDB
-- Upload documenti
-- Gestione categorie
-- Gestione utenti
-- Backup
-- Preview documenti
+### Initial release
+
+* Home Assistant add-on
+* PHP + Apache + MariaDB
+* Document upload
+* Categories management
+* Users management
+* Backup system
+* Document preview
