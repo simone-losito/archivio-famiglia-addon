@@ -23,19 +23,19 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >>
 endobj
 4 0 obj
-<< /Length 214 >>
+<< /Length 204 >>
 stream
 BT
 /F1 28 Tf
 60 760 Td
-(Archivio Famiglia) Tj
+(FamilyDocs) Tj
 /F1 16 Tf
 0 -45 Td
-(Documento dimostrativo creato automaticamente.) Tj
+(Document Manager for Home Assistant) Tj
 0 -30 Td
-(Questo PDF serve per testare tutte le funzioni.) Tj
+(Demo document created automatically.) Tj
 0 -45 Td
-(Buon utilizzo!) Tj
+(Enjoy!) Tj
 ET
 endstream
 endobj
@@ -49,11 +49,11 @@ xref
 0000000058 00000 n 
 0000000115 00000 n 
 0000000251 00000 n 
-0000000515 00000 n 
+0000000505 00000 n 
 trailer
 << /Size 6 /Root 1 0 R >>
 startxref
-585
+575
 %%EOF";
 
     file_put_contents($path, $pdf);
@@ -123,7 +123,7 @@ function installNeeded(mysqli $conn): bool
 }
 
 if (!installNeeded($conn)) {
-    header("Location: login.php");
+    header("Location: " . urlWithLang('login.php'));
     exit;
 }
 
@@ -135,11 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password2 = $_POST['password2'] ?? '';
 
     if ($username === '') {
-        $error = 'Inserisci username';
+        $error = t('enter_username');
     } elseif (strlen($password) < 4) {
-        $error = 'Password troppo corta';
+        $error = t('password_too_short');
     } elseif ($password !== $password2) {
-        $error = 'Le password non coincidono';
+        $error = t('passwords_do_not_match');
     } else {
         ensureTables($conn);
 
@@ -179,11 +179,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             createDemoPdf($demoPath);
         }
 
-        $titolo = 'Documento dimostrativo';
+        $titolo = t('demo_document_title');
         $originale = 'documento_dimostrativo.pdf';
         $categoria = 'referti';
-        $note = 'Creato automaticamente dal wizard iniziale.';
-        $tags = 'demo, esempio, primo avvio';
+        $note = t('demo_document_note');
+        $tags = 'demo, example, first setup';
         $today = date('Y-m-d');
 
         $stmt = $conn->prepare("
@@ -194,16 +194,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sssssss", $demoFile, $originale, $titolo, $categoria, $note, $tags, $today);
         $stmt->execute();
 
-        header("Location: login.php?installed=1");
+        header("Location: " . urlWithLang('login.php?installed=1'));
         exit;
     }
 }
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Installazione Archivio Famiglia</title>
+<title><?= h(t('first_setup')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
 .login-wrap{
@@ -217,31 +219,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     width:100%;
     max-width:520px;
 }
+.language-switch{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    justify-content:flex-end;
+}
+.language-switch a{
+    font-size:13px;
+    text-decoration:none;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+}
+.language-switch a.active{
+    color:var(--text);
+    background:var(--accent-soft);
+    border-color:var(--accent);
+}
 </style>
 </head>
 <body>
 
 <div class="login-wrap">
     <div class="card login-card">
-        <span class="badge">Primo avvio</span>
-        <h1>🚀 Archivio Famiglia</h1>
-        <p>Crea il primo amministratore. Tabelle, categorie demo e PDF dimostrativo verranno creati automaticamente.</p>
+
+        <div class="language-switch">
+            <a href="?lang=it" class="<?= $lang === 'it' ? 'active' : '' ?>">IT</a>
+            <a href="?lang=en" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
+        </div>
+
+        <span class="badge"><?= h(t('first_setup')) ?></span>
+        <h1>🚀 <?= h(t('app_name')) ?></h1>
+        <p><?= h(t('first_setup_description')) ?></p>
 
         <?php if ($error): ?>
             <p class="error"><?= h($error) ?></p>
         <?php endif; ?>
 
         <form method="POST">
-            <label>Username admin</label>
-            <input name="username" placeholder="Username admin" required>
+            <label><?= h(t('admin_username')) ?></label>
+            <input name="username" placeholder="<?= h(t('admin_username')) ?>" required>
 
-            <label>Password</label>
-            <input type="password" name="password" placeholder="Password" required>
+            <label><?= h(t('password')) ?></label>
+            <input type="password" name="password" placeholder="<?= h(t('password')) ?>" required>
 
-            <label>Conferma password</label>
-            <input type="password" name="password2" placeholder="Conferma password" required>
+            <label><?= h(t('confirm_password')) ?></label>
+            <input type="password" name="password2" placeholder="<?= h(t('confirm_password')) ?>" required>
 
-            <button>Crea archivio</button>
+            <button><?= h(t('create_archive')) ?></button>
         </form>
     </div>
 </div>
