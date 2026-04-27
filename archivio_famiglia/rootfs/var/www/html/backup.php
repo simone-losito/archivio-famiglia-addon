@@ -14,7 +14,7 @@ $msg = '';
 
 function exportDb(mysqli $conn): string
 {
-    $sql = "-- Backup Archivio Famiglia\n-- " . date('Y-m-d H:i:s') . "\n\n";
+    $sql = "-- Backup FamilyDocs\n-- " . date('Y-m-d H:i:s') . "\n\n";
     $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
 
     $tables = [];
@@ -132,7 +132,7 @@ if (isset($_GET['download'])) {
 
     if (!$path) {
         http_response_code(404);
-        exit('Backup non trovato');
+        exit(t('backup_not_found'));
     }
 
     header('Content-Type: application/octet-stream');
@@ -164,8 +164,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_backup'])) {
     );
 
     $msg = (is_file($dbFile) && is_file($filesArchive) && $res === 0)
-        ? "Backup completato"
-        : "Errore backup: " . implode(' ', $out ?? []);
+        ? t('backup_completed')
+        : t('backup_error') . ': ' . implode(' ', $out ?? []);
 
     rotateBackups($backupDir);
 }
@@ -182,13 +182,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_backup']) && !
 
         if (move_uploaded_file($_FILES['backup_file']['tmp_name'], $dest)) {
             chmod($dest, 0664);
-            $msg = "Backup caricato";
+            $msg = t('backup_uploaded');
             rotateBackups($backupDir);
         } else {
-            $msg = "Errore caricamento backup";
+            $msg = t('backup_upload_error');
         }
     } else {
-        $msg = "Formato non valido. Usa file .sql oppure .tar.gz generati da Archivio Famiglia.";
+        $msg = t('invalid_backup_format');
     }
 }
 
@@ -199,9 +199,9 @@ if (isset($_GET['delete'])) {
 
     if ($path) {
         unlink($path);
-        $msg = "Backup eliminato";
+        $msg = t('backup_deleted');
     } else {
-        $msg = "Backup non trovato";
+        $msg = t('backup_not_found');
     }
 }
 
@@ -212,10 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restore_db'])) {
 
     if ($path && str_ends_with($file, '.sql')) {
         $msg = restoreSql($conn, $path)
-            ? "Database ripristinato da $file"
-            : "Errore ripristino database";
+            ? t('database_restored_from') . ' ' . $file
+            : t('database_restore_error');
     } else {
-        $msg = "Backup database non valido";
+        $msg = t('invalid_database_backup');
     }
 }
 
@@ -238,35 +238,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restore_files'])) {
         );
 
         $msg = ($res === 0)
-            ? "File ripristinati da $file"
-            : "Errore ripristino file: " . implode(' ', $out ?? []);
+            ? t('files_restored_from') . ' ' . $file
+            : t('files_restore_error') . ': ' . implode(' ', $out ?? []);
     } else {
-        $msg = "Backup file non valido";
+        $msg = t('invalid_files_backup');
     }
 }
 
 $list = glob($backupDir . "/*") ?: [];
 $list = array_filter($list, fn($f) => is_file($f) && isAllowedBackupName(basename($f)));
 usort($list, fn($a, $b) => filemtime($b) <=> filemtime($a));
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Backup</title>
+<title><?= h(t('backup')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="logo">📁 Archivio</div>
+    <div class="logo">📁 <?= h(t('app_name')) ?></div>
     <div class="menu">
-        <a href="index.php">🏠 Home</a>
-        <a href="categorie.php">⚙️ Categorie</a>
-        <a href="utenti.php">👥 Utenti</a>
-        <a href="backup.php" class="active">💾 Backup</a>
-        <a href="info.php">ℹ️ Info</a>
-        <a href="logout.php">🚪 Logout</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>">🏠 <?= h(t('home')) ?></a>
+        <a href="<?= h(urlWithLang('categorie.php')) ?>">⚙️ <?= h(t('categories')) ?></a>
+        <a href="<?= h(urlWithLang('utenti.php')) ?>">👥 <?= h(t('users')) ?></a>
+        <a href="<?= h(urlWithLang('backup.php')) ?>" class="active">💾 <?= h(t('backup')) ?></a>
+        <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
+        <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
     </div>
 </div>
 
@@ -275,11 +277,11 @@ usort($list, fn($a, $b) => filemtime($b) <=> filemtime($a));
     <div class="card">
         <div class="topbar">
             <div>
-                <span class="badge">Sistema</span>
-                <h1>Backup Archivio</h1>
-                <p>Backup completo database + documenti. Rimangono solo gli ultimi 2 backup per tipo.</p>
+                <span class="badge"><?= h(t('system')) ?></span>
+                <h1><?= h(t('archive_backup')) ?></h1>
+                <p><?= h(t('backup_intro')) ?></p>
             </div>
-            <a class="btn btn-secondary" href="index.php">← Home</a>
+            <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php')) ?>">← <?= h(t('home')) ?></a>
         </div>
 
         <?php if ($msg): ?>
@@ -287,25 +289,25 @@ usort($list, fn($a, $b) => filemtime($b) <=> filemtime($a));
         <?php endif; ?>
 
         <form method="POST">
-            <button name="run_backup">💾 Esegui backup</button>
+            <button name="run_backup">💾 <?= h(t('run_backup')) ?></button>
         </form>
     </div>
 
     <div class="card">
-        <h2>Carica backup</h2>
-        <p>Puoi caricare backup SQL o archivio file generati da Archivio Famiglia.</p>
+        <h2><?= h(t('upload_backup')) ?></h2>
+        <p><?= h(t('upload_backup_text')) ?></p>
 
         <form method="POST" enctype="multipart/form-data">
             <input type="file" name="backup_file" required>
-            <button name="upload_backup">⬆️ Carica backup</button>
+            <button name="upload_backup">⬆️ <?= h(t('upload_backup')) ?></button>
         </form>
     </div>
 
     <div class="card">
-        <h2>Backup disponibili</h2>
+        <h2><?= h(t('available_backups')) ?></h2>
 
         <?php if (empty($list)): ?>
-            <p>Nessun backup</p>
+            <p><?= h(t('no_backup')) ?></p>
         <?php else: ?>
             <?php foreach ($list as $f): ?>
                 <?php $name = basename($f); ?>
@@ -318,23 +320,23 @@ usort($list, fn($a, $b) => filemtime($b) <=> filemtime($a));
                     <br><br>
 
                     <div class="toolbar">
-                        <a class="btn btn-secondary" href="backup.php?download=<?= urlencode($name) ?>">⬇️ Scarica</a>
+                        <a class="btn btn-secondary" href="<?= h(urlWithLang('backup.php?download=' . urlencode($name))) ?>">⬇️ <?= h(t('download')) ?></a>
 
                         <?php if (str_ends_with($name, '.sql')): ?>
                             <form method="POST" style="display:inline;">
                                 <input type="hidden" name="restore_db" value="<?= h($name) ?>">
-                                <button onclick="return confirm('Ripristinare il database da questo backup?')">♻️ Ripristina DB</button>
+                                <button onclick="return confirm('<?= h(t('confirm_restore_database')) ?>')">♻️ <?= h(t('restore_db')) ?></button>
                             </form>
                         <?php endif; ?>
 
                         <?php if (str_ends_with($name, '.tar.gz')): ?>
                             <form method="POST" style="display:inline;">
                                 <input type="hidden" name="restore_files" value="<?= h($name) ?>">
-                                <button onclick="return confirm('Ripristinare i file da questo backup?')">♻️ Ripristina file</button>
+                                <button onclick="return confirm('<?= h(t('confirm_restore_files')) ?>')">♻️ <?= h(t('restore_files')) ?></button>
                             </form>
                         <?php endif; ?>
 
-                        <a class="btn btn-danger" href="backup.php?delete=<?= urlencode($name) ?>" onclick="return confirm('Eliminare backup?')">🗑️ Elimina</a>
+                        <a class="btn btn-danger" href="<?= h(urlWithLang('backup.php?delete=' . urlencode($name))) ?>" onclick="return confirm('<?= h(t('confirm_delete_backup')) ?>')">🗑️ <?= h(t('delete')) ?></a>
                     </div>
                 </div>
             <?php endforeach; ?>
