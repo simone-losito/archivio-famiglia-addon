@@ -9,13 +9,13 @@ function uploadErrorMessage(int $code): string
 {
     return match ($code) {
         UPLOAD_ERR_INI_SIZE,
-        UPLOAD_ERR_FORM_SIZE => 'File troppo grande. Limite massimo: 50 MB.',
-        UPLOAD_ERR_PARTIAL => 'Upload incompleto. Riprova.',
-        UPLOAD_ERR_NO_FILE => 'Nessun file selezionato.',
-        UPLOAD_ERR_NO_TMP_DIR => 'Cartella temporanea mancante.',
-        UPLOAD_ERR_CANT_WRITE => 'Impossibile scrivere il file su disco.',
-        UPLOAD_ERR_EXTENSION => 'Upload bloccato da estensione PHP.',
-        default => 'Errore upload sconosciuto.',
+        UPLOAD_ERR_FORM_SIZE => t('upload_error_too_large'),
+        UPLOAD_ERR_PARTIAL => t('upload_error_partial'),
+        UPLOAD_ERR_NO_FILE => t('upload_error_no_file'),
+        UPLOAD_ERR_NO_TMP_DIR => t('upload_error_no_tmp_dir'),
+        UPLOAD_ERR_CANT_WRITE => t('upload_error_cant_write'),
+        UPLOAD_ERR_EXTENSION => t('upload_error_extension'),
+        default => t('upload_error_unknown'),
     };
 }
 
@@ -74,7 +74,7 @@ if (hasUploadedFile('file_foto')) {
 }
 
 if ($uploadField === null) {
-    header("Location: index.php?msg=" . urlencode("Nessun file o foto selezionata"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('no_file_or_photo_selected'))));
     exit;
 }
 
@@ -82,18 +82,18 @@ $file = $_FILES[$uploadField];
 
 $errorCode = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
 if ($errorCode !== UPLOAD_ERR_OK) {
-    header("Location: index.php?msg=" . urlencode(uploadErrorMessage($errorCode)));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(uploadErrorMessage($errorCode))));
     exit;
 }
 
 $fileSize = (int)($file['size'] ?? 0);
 if ($fileSize <= 0) {
-    header("Location: index.php?msg=" . urlencode("File vuoto o non valido"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('empty_or_invalid_file'))));
     exit;
 }
 
 if ($fileSize > MAX_UPLOAD_SIZE) {
-    header("Location: index.php?msg=" . urlencode("File troppo grande. Limite massimo: 50 MB."));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('upload_error_too_large'))));
     exit;
 }
 
@@ -118,12 +118,12 @@ if ($uploadField === 'file_foto' && $ext === '') {
 }
 
 if ($ext === '') {
-    header("Location: index.php?msg=" . urlencode("File senza estensione non consentito"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_without_extension_not_allowed'))));
     exit;
 }
 
 if (!in_array($ext, ALLOWED_EXTENSIONS, true)) {
-    header("Location: index.php?msg=" . urlencode("Estensione file non consentita: " . $ext));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_extension_not_allowed') . ': ' . $ext)));
     exit;
 }
 
@@ -131,12 +131,12 @@ $tmpPath = (string)($file['tmp_name'] ?? '');
 $mime = detectMime($tmpPath);
 
 if ($mime !== '' && !in_array($mime, ALLOWED_MIME_TYPES, true)) {
-    header("Location: index.php?msg=" . urlencode("Tipo file non consentito: " . $mime));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_type_not_allowed') . ': ' . $mime)));
     exit;
 }
 
 if ($uploadField === 'file_foto' && !str_starts_with($mime, 'image/')) {
-    header("Location: index.php?msg=" . urlencode("La foto deve essere un'immagine valida"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('photo_must_be_valid_image'))));
     exit;
 }
 
@@ -152,7 +152,7 @@ $stmt->execute();
 $exists = $stmt->get_result()->fetch_assoc();
 
 if ($exists) {
-    header("Location: index.php?msg=" . urlencode("Errore: esiste già un documento con questo nome"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('document_name_already_exists'))));
     exit;
 }
 
@@ -178,11 +178,11 @@ if ($dataDocumento === '') {
 
 if ($uploadField === 'file_foto') {
     $tags = trim($tags . ($tags !== '' ? ', ' : '') . 'foto, smartphone');
-    $note = trim($note . ($note !== '' ? "\n" : '') . 'Documento acquisito tramite fotocamera smartphone.');
+    $note = trim($note . ($note !== '' ? "\n" : '') . t('smartphone_photo_note'));
 }
 
 if (!move_uploaded_file($tmpPath, $dest)) {
-    header("Location: index.php?msg=" . urlencode("Errore upload: impossibile salvare il file"));
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('upload_save_error'))));
     exit;
 }
 
@@ -197,8 +197,8 @@ $stmt->bind_param("sssssss", $nomeArchivio, $nomeOriginale, $titolo, $category, 
 $stmt->execute();
 
 $msg = ($uploadField === 'file_foto')
-    ? "Foto documento caricata: $titolo"
-    : "File caricato: $titolo";
+    ? t('photo_document_uploaded') . ': ' . $titolo
+    : t('file_uploaded') . ': ' . $titolo;
 
-header("Location: index.php?msg=" . urlencode($msg));
+header("Location: " . urlWithLang('index.php?msg=' . urlencode($msg)));
 exit;
