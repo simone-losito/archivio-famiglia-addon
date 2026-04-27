@@ -29,7 +29,7 @@ if (!tableExists($conn, 'utenti')) {
 }
 
 if ($installNeeded) {
-    header("Location: install.php");
+    header("Location: " . urlWithLang('install.php'));
     exit;
 }
 
@@ -52,33 +52,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['username'] = $utente['username'];
         $_SESSION['ruolo'] = $utente['ruolo'];
 
-        header("Location: index.php");
+        header("Location: " . urlWithLang('index.php'));
         exit;
     }
 
-    $error = "Credenziali errate";
+    $error = t('invalid_credentials');
 }
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Login Archivio Famiglia</title>
+<title><?= h(t('login')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
 .login-card{width:100%;max-width:460px;}
+.language-switch{display:flex;gap:8px;margin-bottom:16px;justify-content:flex-end;}
+.language-switch a{font-size:13px;text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text-muted);}
+.language-switch a.active{color:var(--text);background:var(--accent-soft);border-color:var(--accent);}
+.login-subtitle{margin-top:-8px;color:var(--text-muted);}
 </style>
 </head>
 <body>
 
 <div class="login-wrap">
     <div class="card login-card">
-        <span class="badge">Archivio Famiglia</span>
-        <h1>Login</h1>
+
+        <div class="language-switch">
+            <a href="?lang=it" class="<?= $lang === 'it' ? 'active' : '' ?>">IT</a>
+            <a href="?lang=en" class="<?= $lang === 'en' ? 'active' : '' ?>">EN</a>
+        </div>
+
+        <span class="badge"><?= h(t('app_name')) ?></span>
+        <h1><?= h(t('login')) ?></h1>
+        <p class="login-subtitle"><?= h(t('app_subtitle')) ?></p>
 
         <?php if ($installed): ?>
-            <p class="success">Installazione completata. Accedi con l’utente amministratore appena creato.</p>
+            <p class="success"><?= h(t('install_completed_login')) ?></p>
         <?php endif; ?>
 
         <?php if ($error): ?>
@@ -86,13 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST">
-            <label>Username</label>
-            <input name="username" placeholder="Username" required>
+            <label><?= h(t('username')) ?></label>
+            <input name="username" placeholder="<?= h(t('username')) ?>" required>
 
-            <label>Password</label>
-            <input name="password" placeholder="Password" required type="password">
+            <label><?= h(t('password')) ?></label>
+            <input name="password" placeholder="<?= h(t('password')) ?>" required type="password">
 
-            <button>Entra</button>
+            <button><?= h(t('sign_in')) ?></button>
         </form>
     </div>
 </div>
