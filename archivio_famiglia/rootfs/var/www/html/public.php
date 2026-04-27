@@ -7,7 +7,7 @@ $token = trim((string)($_GET['t'] ?? ''));
 
 if ($token === '' || !preg_match('/^[a-f0-9]{48}$/', $token)) {
     http_response_code(400);
-    exit('Link non valido');
+    exit(t('invalid_link'));
 }
 
 $stmt = $conn->prepare("SELECT * FROM share_links WHERE token = ? AND expires_at > NOW() LIMIT 1");
@@ -17,7 +17,7 @@ $link = $stmt->get_result()->fetch_assoc();
 
 if (!$link) {
     http_response_code(404);
-    exit('Link scaduto o non valido');
+    exit(t('expired_or_invalid_link'));
 }
 
 $category = safeCategory((string)$link['categoria']);
@@ -27,7 +27,7 @@ $path = UPLOAD_DIR . '/' . $category . '/' . $file;
 
 if (!is_file($path)) {
     http_response_code(404);
-    exit('File non trovato');
+    exit(t('file_not_found'));
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
