@@ -6,42 +6,28 @@ function h($value): string
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-/**
- * Lingue supportate da FamilyDocs.
- */
 function supportedLanguages(): array
 {
     return ['it', 'en'];
 }
 
-/**
- * Normalizza una lingua richiesta.
- */
 function normalizeLanguage(?string $lang): string
 {
     $lang = strtolower(trim((string)$lang));
 
-    if (in_array($lang, supportedLanguages(), true)) {
-        return $lang;
-    }
-
-    return 'it';
+    return in_array($lang, supportedLanguages(), true) ? $lang : 'it';
 }
 
-/**
- * Restituisce la lingua corrente.
- * Priorità:
- * 1. parametro URL ?lang=it / ?lang=en
- * 2. sessione
- * 3. cookie
- * 4. italiano
- */
 function currentLanguage(): string
 {
     if (isset($_GET['lang'])) {
         $lang = normalizeLanguage($_GET['lang']);
+
         $_SESSION['lang'] = $lang;
-        setcookie('familydocs_lang', $lang, time() + (86400 * 365), '/');
+
+        if (!headers_sent()) {
+            setcookie('familydocs_lang', $lang, time() + (86400 * 365), '/', '', false, true);
+        }
 
         return $lang;
     }
@@ -60,9 +46,6 @@ function currentLanguage(): string
     return 'it';
 }
 
-/**
- * Carica il file lingua.
- */
 function loadLanguageFile(string $lang): array
 {
     $lang = normalizeLanguage($lang);
@@ -79,16 +62,6 @@ function loadLanguageFile(string $lang): array
     return [];
 }
 
-/**
- * Traduzione UI.
- * Uso:
- * echo t('login');
- *
- * Fallback:
- * - lingua corrente
- * - italiano
- * - chiave stessa
- */
 function t(string $key): string
 {
     static $cache = [];
@@ -114,9 +87,6 @@ function t(string $key): string
     return $key;
 }
 
-/**
- * Crea URL mantenendo la lingua selezionata.
- */
 function urlWithLang(string $url): string
 {
     $lang = currentLanguage();
@@ -125,9 +95,35 @@ function urlWithLang(string $url): string
         return $url;
     }
 
+    if (preg_match('/([?&])lang=(it|en)/', $url)) {
+        return preg_replace('/([?&])lang=(it|en)/', '$1lang=' . urlencode($lang), $url);
+    }
+
     $separator = str_contains($url, '?') ? '&' : '?';
 
     return $url . $separator . 'lang=' . urlencode($lang);
+}
+
+function languageUrl(string $lang): string
+{
+    $lang = normalizeLanguage($lang);
+
+    $path = $_SERVER['PHP_SELF'] ?? 'index.php';
+    $query = $_GET ?? [];
+    $query['lang'] = $lang;
+
+    return $path . '?' . http_build_query($query);
+}
+
+function languageSwitchHtml(): string
+{
+    $lang = currentLanguage();
+
+    return '
+    <div class="language-switch">
+        <a href="' . h(languageUrl('it')) . '" class="' . ($lang === 'it' ? 'active' : '') . '">IT</a>
+        <a href="' . h(languageUrl('en')) . '" class="' . ($lang === 'en' ? 'active' : '') . '">EN</a>
+    </div>';
 }
 
 function isLogged(): bool
