@@ -22,6 +22,7 @@ return [
     'home' => 'Home',
     'dashboard' => 'Dashboard',
     'documents' => 'Documents',
+    'document' => 'Document',
     'categories' => 'Categories',
     'users' => 'Users',
     'backup' => 'Backup',
@@ -53,6 +54,8 @@ return [
     'created_at' => 'Created at',
     'updated_at' => 'Updated at',
     'actions' => 'Actions',
+
+    'invalid_request' => 'Invalid request',
 
     'first_setup' => 'Initial setup',
     'first_setup_description' => 'Create the first administrator. Tables, demo categories and a sample PDF will be created automatically.',
