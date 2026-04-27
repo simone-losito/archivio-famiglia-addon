@@ -5,6 +5,17 @@ This add-on allows you to manage a **family document archive directly inside Hom
 
 ---
 
+## 🚀 New in 1.1.3
+
+* 🧠 Automatic OCR (local – no cloud)
+* 🔍 Smart search inside documents
+* ✨ Soft suggestions (title, tags, date)
+* 📱 Improved mobile experience
+* 🔗 Enhanced sharing system
+* 🔒 Improved upload security
+
+---
+
 ## ☕ Support the project
 
 <p align="center">
@@ -40,6 +51,67 @@ The system will automatically create:
 * Default categories
 * Demo PDF document
 * Admin account
+
+---
+
+## 🧠 OCR (NEW)
+
+FamilyDocs automatically reads text from uploaded images.
+
+### ✔ Supported files
+
+* JPG / JPEG
+* PNG
+* WEBP
+
+### 🔍 What it does
+
+* Extracts text from images
+* Saves it in database (`ocr_text`)
+* Makes documents searchable
+
+---
+
+## ✨ Smart Suggestions (Soft Mode)
+
+OCR does **NOT overwrite your data**.
+
+It suggests:
+
+* Title
+* Tags
+* Date
+
+👉 Suggestions are added to notes or tags
+👉 You remain in full control
+
+---
+
+## 🔍 Smart Search (NEW)
+
+Search now works on:
+
+* Title
+* File name
+* Notes
+* Tags
+* 🔥 OCR content
+
+### Example
+
+Upload a bill image with text:
+
+```text
+ENEL – March 120€
+```
+
+Search:
+
+```text
+enel
+```
+
+👉 Document is found even without title or tags
 
 ---
 
@@ -88,6 +160,7 @@ You can generate temporary public links:
 
 * access only to that file
 * automatic expiration
+* secure token system
 
 ---
 
@@ -156,6 +229,67 @@ Il sistema creerà automaticamente:
 
 ---
 
+## 🧠 OCR (NOVITÀ)
+
+FamilyDocs legge automaticamente il testo dalle immagini caricate.
+
+### ✔ Formati supportati
+
+* JPG / JPEG
+* PNG
+* WEBP
+
+### 🔍 Cosa fa
+
+* Estrae il testo dalle immagini
+* Lo salva nel database (`ocr_text`)
+* Permette ricerca avanzata
+
+---
+
+## ✨ Suggerimenti intelligenti (Soft)
+
+Il sistema NON modifica automaticamente i dati.
+
+Suggerisce:
+
+* Titolo
+* Tag
+* Data
+
+👉 aggiunti come suggerimenti
+👉 sempre sotto controllo utente
+
+---
+
+## 🔍 Ricerca intelligente (NOVITÀ)
+
+La ricerca ora include:
+
+* Titolo
+* Nome file
+* Note
+* Tag
+* 🔥 Testo OCR
+
+### Esempio
+
+Carichi una bolletta con scritto:
+
+```text
+ENEL – Marzo 120€
+```
+
+Cerchi:
+
+```text
+enel
+```
+
+👉 il documento viene trovato anche senza titolo corretto
+
+---
+
 ## 🧭 Interfaccia
 
 ### 📂 Categorie
@@ -174,8 +308,8 @@ Organizza i documenti:
 
 Puoi:
 
-* Caricare file (PDF, immagini, ecc.)
-* 📷 Scattare foto da smartphone
+* Caricare file
+* 📷 Scattare foto
 * Inserire titolo
 * Aggiungere note
 * Inserire tag
@@ -198,6 +332,7 @@ Puoi:
 * link temporanei
 * accesso solo al file
 * scadenza automatica
+* sistema sicuro con token
 
 ---
 
@@ -205,8 +340,6 @@ Puoi:
 
 * backup database
 * backup documenti
-
-Il sistema mantiene automaticamente gli ultimi backup.
 
 ---
 
@@ -251,6 +384,7 @@ Tables:
 * categorie
 * documenti
 * share_links
+* 🔥 documenti.ocr_text (NEW)
 
 ---
 
@@ -275,6 +409,7 @@ Tables:
 * Apache
 * Docker
 * Home Assistant Add-on
+* Tesseract OCR (local)
 
 ---
 
@@ -290,4 +425,4 @@ The setup wizard runs ONLY if:
 ## 👨‍💻 Author
 
 **Simone Losito**
-SimoncinoProjects
+SimoncinoProjects 🚀
