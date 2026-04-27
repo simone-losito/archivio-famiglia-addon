@@ -82,7 +82,10 @@ $lang = currentLanguage();
 
 .top-pill-bar{
     display:flex;
-    justify-content:flex-start;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
     margin-bottom:20px;
 }
 
@@ -186,6 +189,7 @@ $lang = currentLanguage();
 
     <div class="top-pill-bar">
         <a href="<?= h(urlWithLang('index.php')) ?>" class="pill-home">🏠 <?= h(t('back_to_home')) ?></a>
+        <?= languageSwitchHtml() ?>
     </div>
 
     <div class="center">
