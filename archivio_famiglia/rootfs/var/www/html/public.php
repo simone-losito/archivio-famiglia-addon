@@ -41,10 +41,18 @@ $types = [
     'webp' => 'image/webp',
 ];
 
+if (ob_get_level()) {
+    ob_end_clean();
+}
+
+$filename = basename($file);
+$filenameAscii = preg_replace('/[^A-Za-z0-9\-\._]/', '_', $filename);
+
 header('X-Content-Type-Options: nosniff');
 header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
-header('Content-Disposition: inline; filename="' . basename($file) . '"');
+header('Content-Disposition: inline; filename="' . $filenameAscii . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
 header('Content-Length: ' . filesize($path));
+header('Cache-Control: private, max-age=3600');
 
 readfile($path);
 exit;
