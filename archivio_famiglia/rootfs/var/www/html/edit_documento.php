@@ -15,7 +15,7 @@ $doc = $stmt->get_result()->fetch_assoc();
 
 if (!$doc) {
     http_response_code(404);
-    exit('Documento non trovato');
+    exit(t('document_not_found'));
 }
 
 $msg = '';
@@ -70,34 +70,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("sssssi", $titolo, $newCategory, $note, $tags, $dataDocumento, $id);
     $stmt->execute();
 
-    header("Location: view.php?category=" . urlencode($newCategory) . "&file=" . urlencode($nomeArchivio));
+    header("Location: " . urlWithLang("view.php?category=" . urlencode($newCategory) . "&file=" . urlencode($nomeArchivio)));
     exit;
 }
 
 $currentCategory = safeCategory((string)$doc['categoria']);
 $nomeArchivio = safeFilename((string)$doc['nome_archivio']);
-$viewUrl = "view.php?category=" . urlencode($currentCategory) . "&file=" . urlencode($nomeArchivio);
+$viewUrl = urlWithLang("view.php?category=" . urlencode($currentCategory) . "&file=" . urlencode($nomeArchivio));
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Modifica documento</title>
+<title><?= h(t('edit_document')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="logo">📁 Archivio</div>
+    <div class="logo">📁 <?= h(t('app_name')) ?></div>
     <div class="menu">
-        <a href="index.php">🏠 Home</a>
-        <a href="categorie.php">⚙️ Categorie</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>">🏠 <?= h(t('home')) ?></a>
+        <a href="<?= h(urlWithLang('categorie.php')) ?>">⚙️ <?= h(t('categories')) ?></a>
         <?php if (isAdmin()): ?>
-            <a href="utenti.php">👥 Utenti</a>
-            <a href="backup.php">💾 Backup</a>
+            <a href="<?= h(urlWithLang('utenti.php')) ?>">👥 <?= h(t('users')) ?></a>
+            <a href="<?= h(urlWithLang('backup.php')) ?>">💾 <?= h(t('backup')) ?></a>
         <?php endif; ?>
-        <a href="info.php">ℹ️ Info</a>
-        <a href="logout.php">🚪 Logout</a>
+        <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
+        <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
     </div>
 </div>
 
@@ -105,23 +107,23 @@ $viewUrl = "view.php?category=" . urlencode($currentCategory) . "&file=" . urlen
     <div class="card">
         <div class="topbar">
             <div>
-                <span class="badge">Documento</span>
-                <h1>Modifica documento</h1>
+                <span class="badge"><?= h(t('document')) ?></span>
+                <h1><?= h(t('edit_document')) ?></h1>
                 <p><?= h($doc['nome_originale']) ?></p>
             </div>
             <div class="toolbar">
-                <a class="btn btn-secondary" href="<?= h($viewUrl) ?>">👁️ Visualizza</a>
-                <a class="btn btn-secondary" href="index.php">← Home</a>
+                <a class="btn btn-secondary" href="<?= h($viewUrl) ?>">👁️ <?= h(t('view')) ?></a>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php')) ?>">← <?= h(t('home')) ?></a>
             </div>
         </div>
     </div>
 
     <div class="card">
         <form method="POST">
-            <label>Nome documento</label>
+            <label><?= h(t('document_name')) ?></label>
             <input type="text" name="titolo" value="<?= h($doc['titolo'] ?: $doc['nome_originale']) ?>" required>
 
-            <label>Categoria</label>
+            <label><?= h(t('category')) ?></label>
             <select name="categoria">
                 <?php foreach ($categories as $key => $label): ?>
                     <option value="<?= h($key) ?>" <?= $currentCategory === $key ? 'selected' : '' ?>>
@@ -130,18 +132,18 @@ $viewUrl = "view.php?category=" . urlencode($currentCategory) . "&file=" . urlen
                 <?php endforeach; ?>
             </select>
 
-            <label>Data pratica</label>
+            <label><?= h(t('practice_date')) ?></label>
             <input type="date" name="data_documento" value="<?= h($doc['data_documento'] ?? '') ?>">
 
-            <label>Tag</label>
+            <label><?= h(t('tags')) ?></label>
             <input type="text" name="tags" value="<?= h($doc['tags'] ?? '') ?>">
 
-            <label>Note</label>
+            <label><?= h(t('notes')) ?></label>
             <textarea name="note" style="min-height:130px;"><?= h($doc['note'] ?? '') ?></textarea>
 
             <div class="toolbar">
-                <button>Salva modifiche</button>
-                <a class="btn btn-secondary" href="<?= h($viewUrl) ?>">Annulla</a>
+                <button><?= h(t('save_changes')) ?></button>
+                <a class="btn btn-secondary" href="<?= h($viewUrl) ?>"><?= h(t('cancel')) ?></a>
             </div>
         </form>
     </div>
