@@ -1,7 +1,7 @@
-name: "Archivio Famiglia"
-version: "1.1.1"
+name: "FamilyDocs"
+version: "1.1.2"
 slug: "archivio_famiglia"
-description: "Archivio documentale familiare con upload da smartphone, preview, categorie, utenti e link temporanei"
+description: "Document Manager for Home Assistant (ex Archivio Famiglia)"
 url: "https://github.com/simone-losito/archivio-famiglia-addon"
 
 icon: "icon.png"
@@ -20,13 +20,13 @@ init: false
 webui: "http://[HOST]:[PORT:80]"
 
 panel_icon: "mdi:folder"
-panel_title: "Archivio"
+panel_title: "FamilyDocs"
 
 ports:
   80/tcp: 8091
 
 ports_description:
-  80/tcp: "Interfaccia web Archivio Famiglia"
+  80/tcp: "FamilyDocs web interface"
 
 map:
   - type: share
