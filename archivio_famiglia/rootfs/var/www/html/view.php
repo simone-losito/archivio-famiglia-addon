@@ -10,7 +10,7 @@ $file = basename($_GET['file'] ?? '');
 $path = UPLOAD_DIR . '/' . $category . '/' . $file;
 
 if (!is_file($path)) {
-    exit('File non trovato');
+    exit(t('file_not_found'));
 }
 
 $msg = '';
@@ -37,18 +37,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_public_link'])
     $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 
     $publicUrl = $scheme . '://' . $host . $base . '/public.php?t=' . urlencode($token);
-    $msg = "Link pubblico creato. Scade tra $days giorno/i.";
+    $msg = t('public_link_created') . ' ' . $days . ' ' . t('days_short') . '.';
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 $fileUrl = 'uploads/' . rawurlencode($category) . '/' . rawurlencode($file);
-$downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urlencode($file);
+$downloadUrl = urlWithLang('download.php?category=' . urlencode($category) . '&file=' . urlencode($file));
+
+$lang = currentLanguage();
 ?>
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<?= h($lang) ?>">
 <head>
 <meta charset="UTF-8">
-<title>Visualizza documento</title>
+<title><?= h(t('preview')) ?> - <?= h(t('app_name')) ?></title>
 <link rel="stylesheet" href="assets/css/archivio.css">
 <style>
 .preview-box{
@@ -113,16 +115,16 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
 <body>
 
 <div class="sidebar">
-    <div class="logo">📁 Archivio</div>
+    <div class="logo">📁 <?= h(t('app_name')) ?></div>
     <div class="menu">
-        <a href="index.php">🏠 Home</a>
-        <a href="categorie.php">⚙️ Categorie</a>
+        <a href="<?= h(urlWithLang('index.php')) ?>">🏠 <?= h(t('home')) ?></a>
+        <a href="<?= h(urlWithLang('categorie.php')) ?>">⚙️ <?= h(t('categories')) ?></a>
         <?php if(isAdmin()): ?>
-            <a href="utenti.php">👥 Utenti</a>
-            <a href="backup.php">💾 Backup</a>
+            <a href="<?= h(urlWithLang('utenti.php')) ?>">👥 <?= h(t('users')) ?></a>
+            <a href="<?= h(urlWithLang('backup.php')) ?>">💾 <?= h(t('backup')) ?></a>
         <?php endif; ?>
-        <a href="info.php">ℹ️ Info</a>
-        <a href="logout.php">🚪 Logout</a>
+        <a href="<?= h(urlWithLang('info.php')) ?>">ℹ️ <?= h(t('info')) ?></a>
+        <a href="logout.php">🚪 <?= h(t('logout')) ?></a>
     </div>
 </div>
 
@@ -131,15 +133,15 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
     <div class="card">
         <div class="topbar">
             <div>
-                <span class="badge">Anteprima</span>
+                <span class="badge"><?= h(t('preview')) ?></span>
                 <h1><?= h($file) ?></h1>
-                <p>Categoria: <?= h($category) ?></p>
+                <p><?= h(t('category')) ?>: <?= h($category) ?></p>
             </div>
 
             <div class="toolbar">
-                <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica</a>
-                <a class="btn btn-secondary" href="index.php?categoria=<?= urlencode($category) ?>">📂 Categoria</a>
-                <a class="btn btn-secondary" href="index.php">← Home</a>
+                <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ <?= h(t('download')) ?></a>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php?categoria=' . urlencode($category))) ?>">📂 <?= h(t('category')) ?></a>
+                <a class="btn btn-secondary" href="<?= h(urlWithLang('index.php')) ?>">← <?= h(t('home')) ?></a>
             </div>
         </div>
 
@@ -148,29 +150,29 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
         <?php endif; ?>
 
         <div class="share-box">
-            <h2>Condivisione temporanea</h2>
-            <p>Crea un link pubblico solo per questo file. Chi riceve il link non vede il resto dell’archivio.</p>
+            <h2><?= h(t('temporary_sharing')) ?></h2>
+            <p><?= h(t('temporary_sharing_text')) ?></p>
 
             <form method="POST">
                 <input type="hidden" name="create_public_link" value="1">
 
-                <label>Durata link</label>
+                <label><?= h(t('link_duration')) ?></label>
                 <select name="days">
-                    <option value="1">1 giorno</option>
-                    <option value="7">7 giorni</option>
-                    <option value="30">30 giorni</option>
+                    <option value="1">1 <?= h(t('day')) ?></option>
+                    <option value="7">7 <?= h(t('days')) ?></option>
+                    <option value="30">30 <?= h(t('days')) ?></option>
                 </select>
 
-                <button>🔗 Crea link pubblico</button>
+                <button>🔗 <?= h(t('create_public_link')) ?></button>
             </form>
 
             <?php if($publicUrl): ?>
                 <input class="share-url" id="publicUrl" value="<?= h($publicUrl) ?>" readonly>
 
                 <div class="toolbar">
-                    <button class="btn btn-secondary" type="button" onclick="copyPublicLink()">📋 Copia link</button>
-                    <button class="btn btn-secondary" type="button" onclick="sharePublicLink()">📤 Condividi</button>
-                    <a class="btn btn-secondary" href="<?= h($publicUrl) ?>" target="_blank">👁️ Prova link</a>
+                    <button class="btn btn-secondary" type="button" onclick="copyPublicLink()">📋 <?= h(t('copy_link')) ?></button>
+                    <button class="btn btn-secondary" type="button" onclick="sharePublicLink()">📤 <?= h(t('share')) ?></button>
+                    <a class="btn btn-secondary" href="<?= h($publicUrl) ?>" target="_blank">👁️ <?= h(t('test_link')) ?></a>
                 </div>
             <?php endif; ?>
         </div>
@@ -185,20 +187,20 @@ $downloadUrl = 'download.php?category=' . urlencode($category) . '&file=' . urle
             <?php elseif ($ext === 'pdf'): ?>
 
                 <div class="pdf-toolbar">
-                    <a class="btn btn-secondary" href="<?= h($fileUrl) ?>" target="_blank">↗️ Apri PDF</a>
-                    <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ Scarica PDF</a>
+                    <a class="btn btn-secondary" href="<?= h($fileUrl) ?>" target="_blank">↗️ <?= h(t('open_pdf')) ?></a>
+                    <a class="btn btn-secondary" href="<?= h($downloadUrl) ?>">⬇️ <?= h(t('download_pdf')) ?></a>
                 </div>
 
-                <div id="pdfLoading" class="pdf-loading">Caricamento anteprima PDF...</div>
+                <div id="pdfLoading" class="pdf-loading"><?= h(t('pdf_preview_loading')) ?></div>
                 <div id="pdfViewer" class="pdf-viewer"></div>
 
             <?php else: ?>
 
                 <div style="text-align:center;padding:80px 20px;">
-                    <h2>Anteprima non disponibile</h2>
-                    <p>Questo tipo di file può essere scaricato ma non visualizzato direttamente.</p>
+                    <h2><?= h(t('preview_not_available')) ?></h2>
+                    <p><?= h(t('preview_not_available_text')) ?></p>
                     <br>
-                    <a class="btn" href="<?= h($downloadUrl) ?>">⬇️ Scarica file</a>
+                    <a class="btn" href="<?= h($downloadUrl) ?>">⬇️ <?= h(t('download_file')) ?></a>
                 </div>
 
             <?php endif; ?>
@@ -213,17 +215,17 @@ function copyText(text, message) {
         navigator.clipboard.writeText(text).then(function(){
             alert(message);
         }).catch(function(){
-            prompt("Copia manualmente:", text);
+            prompt(<?= json_encode(t('copy_manually')) ?>, text);
         });
     } else {
-        prompt("Copia manualmente:", text);
+        prompt(<?= json_encode(t('copy_manually')) ?>, text);
     }
 }
 
 function copyPublicLink() {
     const input = document.getElementById('publicUrl');
     if (!input) return;
-    copyText(input.value, "Link pubblico copiato!");
+    copyText(input.value, <?= json_encode(t('public_link_copied')) ?>);
 }
 
 function sharePublicLink() {
@@ -231,7 +233,7 @@ function sharePublicLink() {
     if (!input) return;
 
     const url = input.value;
-    const title = "Documento condiviso";
+    const title = <?= json_encode(t('shared_document')) ?>;
 
     if (navigator.share) {
         navigator.share({title:title, url:url}).catch(function(){});
@@ -285,7 +287,7 @@ async function renderPdf() {
             }).promise;
         }
     } catch (e) {
-        loading.innerHTML = 'Anteprima PDF non disponibile. Usa il pulsante “Apri PDF” o “Scarica PDF”.';
+        loading.innerHTML = <?= json_encode(t('pdf_preview_not_available')) ?>;
         console.error(e);
     }
 }
