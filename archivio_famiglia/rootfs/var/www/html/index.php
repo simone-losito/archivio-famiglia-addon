@@ -66,10 +66,10 @@ $params = [];
 $types = '';
 
 if ($search !== '') {
-    $where[] = "(titolo LIKE ? OR nome_originale LIKE ? OR nome_archivio LIKE ? OR note LIKE ? OR tags LIKE ?)";
+    $where[] = "(titolo LIKE ? OR nome_originale LIKE ? OR nome_archivio LIKE ? OR note LIKE ? OR tags LIKE ? OR ocr_text LIKE ?)";
     $like = '%' . $search . '%';
-    $params = array_merge($params, [$like, $like, $like, $like, $like]);
-    $types .= 'sssss';
+    $params = array_merge($params, [$like, $like, $like, $like, $like, $like]);
+    $types .= 'ssssss';
 }
 
 if ($categoria !== '' && isset($categories[$categoria])) {
