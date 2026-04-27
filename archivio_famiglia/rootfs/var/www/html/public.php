@@ -3,6 +3,10 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/functions.php';
 
+// Garantisce compatibilità upgrade
+ensureShareLinksTable();
+cleanupExpiredShareLinks();
+
 $token = trim((string)($_GET['t'] ?? ''));
 
 if ($token === '' || !preg_match('/^[a-f0-9]{48}$/', $token)) {
