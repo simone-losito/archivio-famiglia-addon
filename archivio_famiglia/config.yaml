@@ -48,6 +48,6 @@ schema:
   telemetry_enabled: bool
   telemetry_endpoint: str?
 
-# Opzioni visive nel pannello HA
+# Home Assistant panel options
 ingress: false
 ingress_port: 80
