@@ -5,8 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-define('APP_NAME', 'Archivio Famiglia');
-define('APP_VERSION', '1.1.1');
+define('APP_NAME', 'FamilyDocs');
+define('APP_SUBTITLE', 'Document Manager for Home Assistant (ex Archivio Famiglia)');
+define('APP_VERSION', '1.1.2');
 
 define('BASE_PATH', dirname(__DIR__));
 define('UPLOAD_DIR', BASE_PATH . '/uploads');
