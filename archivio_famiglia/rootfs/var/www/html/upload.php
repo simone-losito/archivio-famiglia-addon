@@ -5,6 +5,12 @@ require_once __DIR__ . '/core/functions.php';
 
 requireLogin();
 
+function uploadRedirect(string $message): void
+{
+    header("Location: " . urlWithLang('index.php?msg=' . urlencode($message)));
+    exit;
+}
+
 function uploadErrorMessage(int $code): string
 {
     return match ($code) {
@@ -30,8 +36,8 @@ function nextDocName(string $category, string $ext): string
     $ext = strtolower(trim($ext));
 
     $dir = UPLOAD_DIR . '/' . $category;
-    if (!is_dir($dir)) {
-        mkdir($dir, 0775, true);
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        uploadRedirect(t('upload_save_error'));
     }
 
     $max = 0;
@@ -62,7 +68,41 @@ function detectMime(string $tmpPath): string
     $mime = finfo_file($finfo, $tmpPath);
     finfo_close($finfo);
 
-    return is_string($mime) ? $mime : '';
+    return is_string($mime) ? strtolower($mime) : '';
+}
+
+function mimeMatchesExtension(string $mime, string $ext): bool
+{
+    if ($mime === '') {
+        return true;
+    }
+
+    $map = [
+        'pdf'  => ['application/pdf'],
+        'jpg'  => ['image/jpeg'],
+        'jpeg' => ['image/jpeg'],
+        'png'  => ['image/png'],
+        'webp' => ['image/webp'],
+        'txt'  => ['text/plain', 'text/x-php'],
+        'doc'  => ['application/msword', 'application/octet-stream'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+        'xls'  => ['application/vnd.ms-excel', 'application/octet-stream'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+    ];
+
+    return isset($map[$ext]) && in_array($mime, $map[$ext], true);
+}
+
+function cleanText(string $value, int $maxLength): string
+{
+    $value = trim($value);
+    $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value) ?? '';
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, $maxLength);
+    }
+
+    return substr($value, 0, $maxLength);
 }
 
 $uploadField = null;
@@ -74,27 +114,28 @@ if (hasUploadedFile('file_foto')) {
 }
 
 if ($uploadField === null) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('no_file_or_photo_selected'))));
-    exit;
+    uploadRedirect(t('no_file_or_photo_selected'));
 }
 
 $file = $_FILES[$uploadField];
 
 $errorCode = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
 if ($errorCode !== UPLOAD_ERR_OK) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(uploadErrorMessage($errorCode))));
-    exit;
+    uploadRedirect(uploadErrorMessage($errorCode));
+}
+
+$tmpPath = (string)($file['tmp_name'] ?? '');
+if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+    uploadRedirect(t('empty_or_invalid_file'));
 }
 
 $fileSize = (int)($file['size'] ?? 0);
 if ($fileSize <= 0) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('empty_or_invalid_file'))));
-    exit;
+    uploadRedirect(t('empty_or_invalid_file'));
 }
 
 if ($fileSize > MAX_UPLOAD_SIZE) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('upload_error_too_large'))));
-    exit;
+    uploadRedirect(t('upload_error_too_large'));
 }
 
 $categories = getCategories();
@@ -118,54 +159,68 @@ if ($uploadField === 'file_foto' && $ext === '') {
 }
 
 if ($ext === '') {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_without_extension_not_allowed'))));
-    exit;
+    uploadRedirect(t('file_without_extension_not_allowed'));
 }
 
 if (!in_array($ext, ALLOWED_EXTENSIONS, true)) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_extension_not_allowed') . ': ' . $ext)));
-    exit;
+    uploadRedirect(t('file_extension_not_allowed') . ': ' . $ext);
 }
 
-$tmpPath = (string)($file['tmp_name'] ?? '');
 $mime = detectMime($tmpPath);
 
 if ($mime !== '' && !in_array($mime, ALLOWED_MIME_TYPES, true)) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('file_type_not_allowed') . ': ' . $mime)));
-    exit;
+    uploadRedirect(t('file_type_not_allowed') . ': ' . $mime);
 }
 
-if ($uploadField === 'file_foto' && !str_starts_with($mime, 'image/')) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('photo_must_be_valid_image'))));
-    exit;
+if (!mimeMatchesExtension($mime, $ext)) {
+    uploadRedirect(t('file_type_not_allowed') . ': ' . $mime);
 }
 
-$titolo = trim((string)($_POST['titolo'] ?? ''));
+if ($uploadField === 'file_foto' && ($mime === '' || !str_starts_with($mime, 'image/'))) {
+    uploadRedirect(t('photo_must_be_valid_image'));
+}
+
+$titolo = cleanText((string)($_POST['titolo'] ?? ''), 180);
 
 if ($titolo === '') {
-    $titolo = pathinfo($nomeOriginale, PATHINFO_FILENAME);
+    $titolo = cleanText(pathinfo($nomeOriginale, PATHINFO_FILENAME), 180);
+}
+
+if ($titolo === '') {
+    $titolo = t('document');
 }
 
 $stmt = $conn->prepare("SELECT id FROM documenti WHERE titolo = ? LIMIT 1");
+if (!$stmt) {
+    uploadRedirect(t('upload_save_error'));
+}
 $stmt->bind_param("s", $titolo);
 $stmt->execute();
 $exists = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if ($exists) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('document_name_already_exists'))));
-    exit;
+    uploadRedirect(t('document_name_already_exists'));
 }
 
 $dir = UPLOAD_DIR . '/' . $category;
-if (!is_dir($dir)) {
-    mkdir($dir, 0775, true);
+if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+    uploadRedirect(t('upload_save_error'));
+}
+
+if (!is_writable($dir)) {
+    uploadRedirect(t('upload_save_error'));
 }
 
 $nomeArchivio = nextDocName($category, $ext);
 $dest = $dir . '/' . $nomeArchivio;
 
-$note = trim((string)($_POST['note'] ?? ''));
-$tags = trim((string)($_POST['tags'] ?? ''));
+if (file_exists($dest)) {
+    uploadRedirect(t('upload_save_error'));
+}
+
+$note = cleanText((string)($_POST['note'] ?? ''), 2000);
+$tags = cleanText((string)($_POST['tags'] ?? ''), 500);
 $dataDocumento = trim((string)($_POST['data_documento'] ?? ''));
 
 if ($dataDocumento !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataDocumento)) {
@@ -182,8 +237,7 @@ if ($uploadField === 'file_foto') {
 }
 
 if (!move_uploaded_file($tmpPath, $dest)) {
-    header("Location: " . urlWithLang('index.php?msg=' . urlencode(t('upload_save_error'))));
-    exit;
+    uploadRedirect(t('upload_save_error'));
 }
 
 chmod($dest, 0664);
@@ -193,12 +247,23 @@ $stmt = $conn->prepare("
     (nome_archivio, nome_originale, titolo, categoria, note, tags, data_documento)
     VALUES (?, ?, ?, ?, ?, ?, ?)
 ");
+
+if (!$stmt) {
+    @unlink($dest);
+    uploadRedirect(t('upload_save_error'));
+}
+
 $stmt->bind_param("sssssss", $nomeArchivio, $nomeOriginale, $titolo, $category, $note, $tags, $dataDocumento);
-$stmt->execute();
+
+if (!$stmt->execute()) {
+    @unlink($dest);
+    uploadRedirect(t('upload_save_error'));
+}
+
+$stmt->close();
 
 $msg = ($uploadField === 'file_foto')
     ? t('photo_document_uploaded') . ': ' . $titolo
     : t('file_uploaded') . ': ' . $titolo;
 
-header("Location: " . urlWithLang('index.php?msg=' . urlencode($msg)));
-exit;
+uploadRedirect($msg);
