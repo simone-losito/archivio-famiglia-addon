@@ -42,53 +42,201 @@ Permette di caricare, cercare, visualizzare, scaricare, modificare, organizzare 
 ### 🌙 Dark theme
 
 <p align="center">
-  <img src="assets/screens/dashboard-dark.png" width="900" alt="FamilyDocs dark dashboard">
+  <img src="assets/screens/dashboard-dark.png" width="900">
 </p>
 
 ### ☀️ Light theme
 
 <p align="center">
-  <img src="assets/screens/dashboard-light.png" width="900" alt="FamilyDocs light dashboard">
+  <img src="assets/screens/dashboard-light.png" width="900">
 </p>
 
 ### 📂 Categories
 
 <p align="center">
-  <img src="assets/screens/categorie.png" width="900" alt="FamilyDocs categories">
+  <img src="assets/screens/categorie.png" width="900">
 </p>
 
 ---
 
 ## ✅ Main features
 
-- 📂 Category management with images
-- 📄 Document upload
-- 📷 Smartphone photo upload
-- 👁️ PDF preview with PDF.js
-- 🖼️ Image preview
-- ⬇️ Document download
-- ✏️ Document editing
-- 🗑️ Document deletion
-- ⭐ Favorites
-- 🔎 Search by name, category, tag, note, date, year and month
-- 👥 User management
-- 🔐 Admin/user roles
-- 🔗 Temporary public links
-- 💾 Database and file backup
-- 🌙 Dark theme
-- ☀️ Light theme
-- 🌍 Italian / English interface
-- ℹ️ Info page with statistics
-- 🏠 Home Assistant add-on integration
+* 📂 Category management with images
+* 📄 Document upload
+* 📷 Smartphone photo upload
+* 👁️ PDF preview
+* 🖼️ Image preview
+* ⬇️ Document download
+* ✏️ Document editing
+* 🗑️ Document deletion
+* ⭐ Favorites
+* 🔎 Advanced search (name, category, tags, date)
+* 👥 User management
+* 🔐 Admin/user roles
+* 🔗 Temporary public links
+* 💾 Backup database + files
+* 🌙 Dark theme
+* ☀️ Light theme
+* 🌍 Multilanguage (IT / EN)
+* 🏠 Home Assistant integration
 
 ---
 
 ## 🚀 Installation on Home Assistant
 
-1. Open **Settings → Add-ons → Add-on Store**
-2. Click the **three dots** in the top-right corner
-3. Open **Repositories**
-4. Add this repository URL:
+1. Vai in **Settings → Add-ons → Add-on Store**
+2. Clicca sui **tre puntini**
+3. Apri **Repositories**
+4. Inserisci:
 
-```text
 https://github.com/simone-losito/archivio-famiglia-addon
+
+5. Installa **FamilyDocs**
+6. Configura MariaDB
+7. Avvia
+8. Apri la Web UI
+
+---
+
+## ⚠️ Non è HACS
+
+FamilyDocs è un **add-on**, NON un’integrazione HACS.
+
+Si installa da:
+**Add-on Store → Repository**
+
+---
+
+## ⚙️ Configurazione
+
+```yaml
+db_host: core-mariadb
+db_name: homeassistant
+db_user: homeassistant
+db_pass: PASSWORD
+telemetry_enabled: false
+telemetry_endpoint: ""
+```
+
+---
+
+## 🧠 Primo avvio
+
+Il sistema crea automaticamente:
+
+* tabelle database
+* categorie base
+* primo admin
+* PDF demo
+
+---
+
+## 🌍 Lingue
+
+Supportate:
+
+* 🇮🇹 Italiano
+* 🇬🇧 English
+
+Cambio lingua via:
+
+```
+?lang=it
+?lang=en
+```
+
+---
+
+## 📷 Upload da smartphone
+
+* Upload file normale
+* Pulsante **Scatta foto documento**
+
+---
+
+## 📂 Storage
+
+Percorso reale:
+
+```
+/share/archivio
+```
+
+Interno container:
+
+```
+/var/www/html/uploads
+```
+
+---
+
+## 🌐 Porta
+
+```
+8091
+```
+
+---
+
+## 🔐 Sicurezza
+
+* password hashate
+* login protetto
+* utenti attivi/disattivi
+* protezione ultimo admin
+* validazione input
+* link temporanei sicuri
+
+---
+
+## 💾 Backup
+
+* database `.sql`
+* file `.tar.gz`
+* mantiene ultimi 2
+
+---
+
+## 🛠️ Stack
+
+* PHP 8.2
+* Apache
+* MariaDB
+* Docker
+* Home Assistant
+
+---
+
+## 📌 Roadmap
+
+* upload multiplo
+* OCR
+* notifiche HA
+* ruoli avanzati
+* export completo
+* miglioramenti mobile
+
+---
+
+## ☕ Supporta il progetto
+
+https://www.paypal.com/paypalme/simoncinoprojects
+
+---
+
+## 👨‍💻 Autore
+
+Simone Losito
+SimoncinoProjects
+
+---
+
+## ⭐ Support
+
+Lascia una ⭐ su GitHub
+
+---
+
+## 📜 Licenza
+
+MIT
